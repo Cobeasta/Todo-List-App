@@ -12,7 +12,7 @@ class HeaderTaskFilterItem extends FilterItem {
 
   @override
   Widget build(BuildContext context) {
-    return Text(_title);
+    return Text(_title, style: Theme.of(context).textTheme.headlineSmall);
   }
 }
 
