@@ -1,9 +1,6 @@
 import 'package:floor/floor.dart';
-import 'package:flutter/material.dart';
 
-/**
- * Classes/data for relational representation of a task, accessing tasks in database
- */
+/// Classes/data for relational representation of a task, accessing tasks in database
 @Entity(tableName: Task.tableName)
 class Task {
   Task(this.id, this.title, this.description, this.isComplete);
@@ -15,7 +12,7 @@ class Task {
   final String? description;
   final bool? isComplete;
 
-  Task.create(this.title, this.description, this.isComplete) : this.id = null;
+  Task.create(this.title, this.description, this.isComplete) : id = null;
 
   Task.createEmpty()
       : id = null,

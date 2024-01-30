@@ -4,9 +4,7 @@ import 'package:todo_list/task/TaskList/taskListItem/TaskListItemVM.dart';
 import 'package:todo_list/task/TaskListBase.dart';
 import 'package:todo_list/task/TaskModel.dart';
 
-/**
- * Entry state for task list item
- */
+/// Entry state for task list item
 class TaskListItemWidget extends StatefulWidget {
   final TaskModel _model;
   final TaskListVMBase _taskListVM;
@@ -40,6 +38,7 @@ class TaskItemView extends State<TaskListItemWidget> {
     return Text(_vm.description);
   }
 
+  @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider<TaskListItemVM>(
       create: (context) => _vm,

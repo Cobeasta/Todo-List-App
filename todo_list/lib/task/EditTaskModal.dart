@@ -1,6 +1,5 @@
 import 'dart:async';
 
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:todo_list/task/TaskListBase.dart';
 import 'package:todo_list/task/TaskModel.dart';
@@ -9,12 +8,12 @@ import 'package:todo_list/main.dart';
 import 'package:todo_list/data/TaskData.dart';
 
 class EditTaskModal extends StatefulWidget {
-  TaskModel _task;
-  TaskListVMBase _taskListVM;
+  final TaskModel _task;
+  final TaskListVMBase _taskListVM;
 
   get task => _task;
 
-  EditTaskModal(this._task, this._taskListVM);
+  const EditTaskModal(this._task, this._taskListVM, {super.key});
 
   @override
   State<StatefulWidget> createState() {
@@ -25,7 +24,7 @@ class EditTaskModal extends StatefulWidget {
 class NewTaskVM extends ChangeNotifier {
   late TaskRepository _repository;
   final TaskModel _taskModel;
-  TaskListVMBase _taskListVM;
+  final TaskListVMBase _taskListVM;
 
   get task => _taskModel;
 

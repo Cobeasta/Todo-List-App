@@ -1,4 +1,3 @@
-import 'package:flutter/cupertino.dart';
 import 'package:todo_list/task/TaskListBase.dart';
 import 'package:todo_list/task/TaskModel.dart';
 import 'package:todo_list/task/sortedTaskList/taskFilters/TaskFilterBase.dart';
@@ -74,9 +73,7 @@ class FilteredTaskListVM extends TaskListVMBase {
 
   // Task list implementations
 
-  /**
-   * Delete Task
-   */
+  /// Delete Task
   @override
   void removeTask(TaskModel model) {
     if (!initialized) {

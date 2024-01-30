@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_list/task/EditTaskModal.dart';
-import 'package:todo_list/task/TaskListBase.dart';
 import 'package:todo_list/task/TaskModel.dart';
 import 'package:todo_list/task/taskList/TaskListVM.dart';
 import 'package:todo_list/task/taskList/taskListItem/TaskListItemView.dart';
