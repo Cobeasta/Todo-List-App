@@ -25,8 +25,10 @@ class FilteredTaskListVM extends TaskListVMBase {
     return [...filters.expand((element) => element.items)];
   }*/
   final List<FilterItem> _listItems = [];
+  List<TaskModel> _tasks = []; // all tasks in vm
 
   List<FilterItem> get listItems => _listItems;
+
 
   FilteredTaskListVM() {
     if (_incompleteFilterEnable) {
@@ -93,7 +95,9 @@ class FilteredTaskListVM extends TaskListVMBase {
     }
     reset();
 
+    _tasks.clear();
     super.repository.listTasks().then((tasks) {
+      _tasks.addAll(tasks);
       sortTasks(tasks);
       onChange();
     });
@@ -108,6 +112,19 @@ class FilteredTaskListVM extends TaskListVMBase {
 
     onChange();
   }
+  void deleteCompletedTasks() {
+    List<TaskModel> toRemove = [];
+    for(TaskModel task in _tasks) {
+      if(task.isComplete) {
+        toRemove.add(task);
+      }
+    }
+    for(TaskModel task in toRemove) {
+      resetTask(task);
+      super.repository.deleteTask(task.id);
+    }
+    onChange();
+  }
 
   // helper functions
 
@@ -120,11 +137,11 @@ class FilteredTaskListVM extends TaskListVMBase {
   }
 
 
-
   TaskModel resetTask(TaskModel task) {
     // remove from all filters
-    _uncategorizedTasks.remove(task);
-    for (var filter in _filters) {
+    _tasks.remove(task);
+
+    for(var filter in _filters) {
       filter.removeTask(task);
     }
     // create new task from the data in the last task
