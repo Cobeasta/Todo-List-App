@@ -3,7 +3,6 @@ import 'package:floor/floor.dart';
 import 'package:todo_list/data/TaskData.dart';
 
 import 'package:sqflite/sqflite.dart' as sqflite;
-import 'package:path/path.dart';
 
 part 'AppDatabase.g.dart'; // the generated code will be there
 

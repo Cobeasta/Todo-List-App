@@ -2,13 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:todo_list/data/TaskData.dart';
 import 'package:todo_list/AppDatabase.dart';
-import 'package:todo_list/task/EditTaskModal.dart';
-import 'package:todo_list/task/TaskList/TaskListVM.dart';
 import 'package:todo_list/task/TaskRepository.dart';
 import 'package:todo_list/task/sortedTaskList/FilteredTaskList.dart';
 
-import 'task/TaskList/TaskListView.dart';
-import 'task/TaskModel.dart';
 
 final getIt = GetIt.instance;
 

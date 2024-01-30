@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:todo_list/main.dart';
-import 'package:todo_list/task/EditTaskModal.dart';
 import 'package:todo_list/task/TaskModel.dart';
 import 'package:todo_list/task/TaskRepository.dart';
 

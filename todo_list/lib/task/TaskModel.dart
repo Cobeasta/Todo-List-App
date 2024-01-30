@@ -1,4 +1,3 @@
-import 'package:flutter/material.dart';
 import 'package:todo_list/data/TaskData.dart';
 
 class TaskModel {
@@ -35,9 +34,7 @@ class TaskModel {
     _description = text;
   }
 
-  /**
-   * Change value of isComplete.
-   */
+  /// Change value of isComplete.
   void setComplete(bool? value) {
     if (value == null) {
       _isCompleted = !_isCompleted;

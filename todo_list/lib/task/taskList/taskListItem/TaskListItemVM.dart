@@ -3,12 +3,10 @@ import 'package:todo_list/task/EditTaskModal.dart';
 import 'package:todo_list/task/TaskListBase.dart';
 import 'package:todo_list/task/TaskModel.dart';
 
-/**
- * View model for a single task
- */
+/// View model for a single task
 class TaskListItemVM extends ChangeNotifier {
-  TaskModel _model;
-  TaskListVMBase _taskListVM;
+  final TaskModel _model;
+  final TaskListVMBase _taskListVM;
 
   TaskListItemVM(this._model, this._taskListVM);
 
@@ -28,9 +26,7 @@ class TaskListItemVM extends ChangeNotifier {
     notifyListeners();
   }
 
-  /**
-   * List item clicked. Open editing modal
-   */
+  /// List item clicked. Open editing modal
   void onTap(BuildContext context) {
     openEditTaskModal(_model, _taskListVM, context);
     notifyListeners();

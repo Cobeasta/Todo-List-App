@@ -6,7 +6,7 @@ import 'package:todo_list/task/taskList/taskListItem/TaskListItemView.dart';
 import 'TaskFilterBase.dart';
 
 class HeaderTaskFilterItem extends FilterItem {
-  String _title;
+  final String _title;
 
   HeaderTaskFilterItem(this._title);
 
@@ -17,8 +17,8 @@ class HeaderTaskFilterItem extends FilterItem {
 }
 
 class TaskModelTaskFilterItem extends FilterItem {
-  TaskModel _model;
-  TaskListVMBase _vm;
+  final TaskModel _model;
+  final TaskListVMBase _vm;
 
   TaskModelTaskFilterItem(this._model, this._vm):super();
 
