@@ -82,8 +82,7 @@ class FilteredTaskListVM extends TaskListVMBase {
       init(() => removeTask(model));
     }
     if (model.id == null) return;
-
-    TaskModel newInstance = resetTask(model);
+    resetTask(model);
     onChange();
   }
 
