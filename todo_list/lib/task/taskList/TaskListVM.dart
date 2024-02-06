@@ -1,91 +1,175 @@
 import 'package:flutter/material.dart';
-import 'package:todo_list/main.dart';
-import 'package:todo_list/task/TaskListBase.dart';
+import 'package:todo_list/task/taskList/TaskListBase.dart';
 import 'package:todo_list/task/TaskModel.dart';
-import 'package:todo_list/task/TaskRepository.dart';
+import 'package:todo_list/task/taskList/taskFilters/DeadlineTaskSorter.dart';
+import 'package:todo_list/task/taskList/taskFilters/TaskFilterBase.dart';
+import 'package:todo_list/task/taskList/taskListItem/TaskListHeader.dart';
+
+import 'taskFilters/CompletedTaskFilter.dart';
 
 class TaskListVM extends TaskListVMBase {
-  final List<TaskModel> _tasks = []; // model
-  bool _loading = false;
-  late TaskRepository _repository;
-  bool _initialized = false;
+  final List<TaskListFilterBase> _filters = [];
 
-  final bool _useScrollController = true;
-  late final ScrollController _scrollController;
+  List<TaskListFilterBase> get filters => _filters;
 
-  TaskListVM() : super();
+  final bool _incompleteFilterEnable = true;
+  final bool _completeFilterEnable = true;
 
-  get tasks => _tasks;
+  final bool _groupByDeadline = false;
+  final bool _sortByDeadline = true;
 
-  @override
-  void init(void Function() callback) async {
-    _repository = await getIt.getAsync<TaskRepository>().then((repo) {
-      if (!_initialized) {
-        _repository = repo;
-        _scrollController = ScrollController();
-        if (_useScrollController) {
-          _scrollController.addListener(handleScrollControllerUpdate);
-        }
-        _initialized = true; // Task repository is initialized
-      }
+  // all/uncategorized tasks
 
-      callback();
+  late final DeadlineTaskSorter _uncategorizedTasks;
 
-      return _repository;
-    });
+  /* List<FilterItem> get listViewItems {
+    return [...filters.expand((element) => element.items)];
+  }*/
+  final List<Widget> _listItems = [];
+  final List<TaskModel> _tasks = []; // all tasks in vm
+
+  List<Widget> get listItems => _listItems;
+
+  TaskListVM() {
+    if (_incompleteFilterEnable) {
+      _filters.add(CompletedTaskFilter(true, this));
+    }
+    if (_groupByDeadline) {}
+    if (_completeFilterEnable) {
+      _filters.add(CompletedTaskFilter(false, this));
+    }
+    _uncategorizedTasks = DeadlineTaskSorter(this, "");
   }
 
-  void handleScrollControllerUpdate() {}
+  void sortTasks(List<TaskModel> tasks) {
+    for (var task in tasks) {
+      sortTask(task);
+    }
+  }
+
+  void sortTask(TaskModel task) {
+    bool filtered = false;
+    for (var filter in _filters) {
+      if (filter.addTask(task)) {
+        filtered = true;
+      } else {
+        filter.removeTask(task);
+      }
+    }
+    if (!filtered) _uncategorizedTasks.addTask(task);
+  }
+
+  @override
+  void addTask(TaskModel model) {
+    sortTask(model);
+    onChange();
+  }
+
 
   @override
   Future<void> onRefresh() async {
-    if (!_initialized) {
+    if (!super.initialized) {
       init(onRefresh);
       return;
     }
     update();
   }
 
-  // interfacing with task repository
+  // Task list implementations
+
+  /// Delete Task
+  @override
+  void removeTask(TaskModel model) {
+    if (!initialized) {
+      init(() => removeTask(model));
+    }
+    if (model.id == null) return;
+
+    resetTask(model);
+    onChange();
+  }
+
   @override
   void update() async {
-    if (!_initialized) {
+    if (!super.initialized) {
       init(update);
       return;
     }
-    _loading = true;
-    notifyListeners();
-    List<TaskModel> tasks = await _repository.listTasks();
+    reset();
 
     _tasks.clear();
-    _tasks.addAll(tasks);
-
-    _loading = false;
-    notifyListeners();
+    super.repository.listTasks().then((tasks) {
+      _tasks.addAll(tasks);
+      sortTasks(tasks);
+      onChange();
+    });
   }
 
   @override
-  void addTask(TaskModel task) {
-    if (!_initialized) {
-      init(() => addTask(task));
-      return;
+  void onTaskUpdate(TaskModel task) {
+    if (!super.initialized) {
+      init(() => onTaskUpdate(task));
     }
-    _tasks.add(task);
-    notifyListeners();
+    sortTask(task);
+
+    onChange();
   }
 
-  @override
-  void removeTask(TaskModel task) {
-    if (!_initialized) {
-      init(() => removeTask(task));
-      return;
+  void deleteCompletedTasks() {
+    List<TaskModel> toRemove = [];
+    for (TaskModel task in _tasks) {
+      if (task.isComplete) {
+        toRemove.add(task);
+      }
     }
+    for (TaskModel task in toRemove) {
+      resetTask(task);
+      super.repository.deleteTask(task.id);
+    }
+    onChange();
+  }
+
+  // helper functions
+
+  void reset() {
+    // Empty filters and repopulate
+    _uncategorizedTasks.clear();
+    for (var filter in _filters) {
+      filter.clear();
+    }
+  }
+
+  TaskModel resetTask(TaskModel task) {
+    // remove from all filters
     _tasks.remove(task);
-    notifyListeners();
+
+    for (var filter in _filters) {
+      filter.removeTask(task);
+    }
+    // create new task from the data in the last task
+    TaskModel newInstance = TaskModel(task.getData());
+    return newInstance;
   }
-  @override
-void onTaskUpdate(TaskModel task) {
-    // nothing needs done for this list when a task is updated.
-    return;
+
+  void rebuildFilters() {
+    _listItems.clear();
+    for (var filter in _filters) {
+      List<Widget> items = filter.listForGroupedItems();
+      if(items.length > 1) {
+        _listItems.addAll(items);
+      }
+    }
+    List<Widget> uncategorizedSection = _uncategorizedTasks.listForSortedItems();
+    if(uncategorizedSection.length > 0) {
+      _listItems.add(TaskListHeader("Other"));
+      _listItems.addAll(uncategorizedSection);
+    }
+  }
+
+  void sortItems() {}
+
+  void onChange() {
+    rebuildFilters();
+    notifyListeners();
   }
 }

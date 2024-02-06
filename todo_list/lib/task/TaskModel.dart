@@ -1,28 +1,34 @@
-import 'package:todo_list/data/TaskData.dart';
+import 'package:todo_list/database/tables/Task.dart';
+import 'package:todo_list/database/typeConverters/DateTimeConverter.dart';
 
 class TaskModel {
   TaskModel(Task task)
       : _id = task.id,
-        _title = task.title == null ? "" : task.title!,
-        _description = task.description == null ? "" : task.description!,
-        _isCompleted = task.isComplete == null ? false : task.isComplete!;
+        _title = task.title,
+        _description = task.description,
+        _deadline = task.deadline;
 
   TaskModel.createEmpty()
       : _id = null,
         _title = "",
         _description = "",
-        _isCompleted = false;
+        _deadline = DateTimeConverter.today(),
+        _completedDate = null;
 
   final int? _id;
   String _title;
   String _description;
-  bool _isCompleted;
+  DateTime? _completedDate;
+  DateTime _deadline;
 
-  get title => _title;
+  String get title => _title;
 
-  get description => _description;
+  String get description => _description;
 
-  get isComplete => _isCompleted;
+  DateTime? get completedDate => _completedDate;
+  bool get isComplete => _completedDate != null;
+
+  DateTime get deadline => _deadline;
 
   get id => _id;
 
@@ -34,20 +40,30 @@ class TaskModel {
     _description = text;
   }
 
+  void updateDeadline(DateTime dateTime) {
+    _deadline = dateTime;
+  }
+
   /// Change value of isComplete.
   void setComplete(bool? value) {
-    if (value == null) {
-      _isCompleted = !_isCompleted;
-    } else if (value != _isCompleted) {
-      _isCompleted = value;
+    if (value == null && _completedDate == null) {
+      // completion not specified, task not complete
+      _completedDate = DateTimeConverter.today();
+    } else if (value == null && _completedDate != null) {
+      // completion not specified, task incomplete
+      _completedDate = null;
+    } else if (value != null && _completedDate == null) {
+      // completion specified, task not complete
+      _completedDate = (value == false) ? null : DateTime.timestamp();
     } else {
-      return;
+      // Task already complete, if still complete, no change
+      _completedDate = (value == false) ? null : _completedDate;
     }
     // _isCompleted did change
   }
 
   Task getData() {
-    return Task(_id, _title, _description, _isCompleted);
+    return Task(_id, _title, _description, _deadline, _completedDate);
   }
 
   @override

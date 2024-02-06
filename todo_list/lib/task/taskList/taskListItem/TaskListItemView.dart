@@ -1,19 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:todo_list/basic_widgets/TaskListCheckBox.dart';
+import 'package:todo_list/database/typeConverters/DateTimeConverter.dart';
 import 'package:todo_list/task/TaskList/taskListItem/TaskListItemVM.dart';
-import 'package:todo_list/task/TaskListBase.dart';
-import 'package:todo_list/task/TaskModel.dart';
-
-/// Entry state for task list item
-class TaskListItemWidget extends StatefulWidget {
-  final TaskModel _model;
-  final TaskListVMBase _taskListVM;
-
-  const TaskListItemWidget(this._model, this._taskListVM, {super.key});
-
-  @override
-  State<StatefulWidget> createState() => TaskItemView();
-}
+import 'package:todo_list/task/taskList/taskListItem/TaskListItem.dart';
 
 class TaskItemView extends State<TaskListItemWidget> {
   late TaskListItemVM _vm;
@@ -21,21 +11,32 @@ class TaskItemView extends State<TaskListItemWidget> {
   @override
   void initState() {
     super.initState();
-    _vm = TaskListItemVM(widget._model, widget._taskListVM);
+    _vm = TaskListItemVM(widget.model, widget.taskListVM);
   }
 
   Widget buildCheckbox(BuildContext context) {
-    return Checkbox(value: _vm.isComplete, onChanged: _vm.onCheckToggle);
+    return TaskListCheckBox(
+        _vm.isComplete,
+            (val) => _vm.onCheckToggle(val));
   }
 
   Widget buildTitle(BuildContext context) {
     return Text(
       _vm.title,
+      style: Theme.of(context).textTheme.headlineSmall,
     );
   }
 
   Widget buildSubtitle(BuildContext context) {
-    return Text(_vm.description);
+    return Row(
+      children: [
+        const Icon(Icons.calendar_month_outlined),
+        Text(
+          DateTimeConverter.formatDate(_vm.deadline),
+          style: Theme.of(context).textTheme.bodyMedium,
+        )
+      ],
+    );
   }
 
   @override
