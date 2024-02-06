@@ -1,0 +1,133 @@
+import 'package:flutter/material.dart';
+import 'package:todo_list/basic_widgets/TaskListCheckBox.dart';
+import 'package:todo_list/basic_widgets/TaskListTextField.dart';
+import 'package:todo_list/database/typeConverters/DateTimeConverter.dart';
+import 'package:todo_list/task/taskList/TaskListBase.dart';
+import 'package:todo_list/task/TaskModel.dart';
+
+import 'EditTaskModal.dart';
+import 'EditTaskVM.dart';
+
+class EditTaskModalView extends State<EditTaskModal> {
+  late EditTaskVM _viewmodel;
+
+  @override
+  void initState() {
+    super.initState();
+    _viewmodel = EditTaskVM(widget.taskListVM, widget.task);
+    _viewmodel.init();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [buildFormItems(context), buildItemModButtons(context)]));
+  }
+
+  Widget buildFormItems(BuildContext context) {
+    return Column(
+      children: [
+        buildFormItem(
+          context,
+          leading: TaskListCheckBox(_viewmodel.isCompleted,
+              (val) => _viewmodel.onCheckToggle(context, val)),
+          child: Expanded(
+              child: TextField(
+            decoration: InputDecoration(
+              hintText: "Task Title",
+            ),
+            controller: _viewmodel.titleController,
+            style: Theme.of(context).textTheme.headlineSmall,
+                autofocus: (_viewmodel.title == ""),
+          )),
+        ),
+        buildFormItem(context,
+            leading:
+                Transform.scale(scale: 1.3, child: const Icon(Icons.edit_note)),
+            child: Expanded(
+                child: TextField(
+              decoration: InputDecoration(
+                hintText: "Description",
+              ),
+              controller: _viewmodel.descriptionController,
+              style: Theme.of(context).textTheme.bodyLarge,
+            )))
+      ],
+    );
+  }
+
+  Widget buildItemModButtons(BuildContext context) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        ElevatedButton(
+            onPressed: () {
+              _selectDate(context);
+            },
+            child: Row(
+              children: [
+                const Icon(Icons.calendar_month_outlined),
+                Text(DateTimeConverter.formatDate(_viewmodel.deadline)),
+              ],
+            )),
+        IconButton(
+            onPressed: () {
+              _viewmodel.delete(context);
+            },
+            icon: const Icon(Icons.delete)),
+        IconButton(
+            onPressed: () {
+              _viewmodel.submit(context);
+            },
+            icon: const Icon(Icons.send)),
+      ],
+    );
+  }
+
+  Widget buildFormItem(BuildContext context,
+      {Widget? leading, required Widget child}) {
+    return Card(
+        child: Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      textBaseline: TextBaseline.ideographic,
+      children: [
+        Container(
+          child: leading ?? const SizedBox.square(),
+          width: 30,
+          height: 30,
+          padding: const EdgeInsets.only(right: 10),
+        ),
+        child
+      ],
+    ));
+  }
+
+  void _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+        context: context,
+        initialDate: DateTimeConverter.today(),
+        firstDate: DateTimeConverter.today(),
+        lastDate: DateTime(DateTime.timestamp().year + 5));
+    if (picked == null) {
+      _viewmodel.updateDeadline(DateTimeConverter.today());
+    } else {
+      _viewmodel.updateDeadline(picked);
+    }
+  }
+}
+
+Future<dynamic> openEditTaskModal(
+    TaskModel task, TaskListVMBase taskListVM, BuildContext context) {
+  return showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (BuildContext context) {
+        return EditTaskModal(task, taskListVM);
+      });
+}

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:todo_list/task/EditTaskModal.dart';
-import 'package:todo_list/task/TaskListBase.dart';
+import 'package:todo_list/task/taskList/TaskListBase.dart';
 import 'package:todo_list/task/TaskModel.dart';
+import 'package:todo_list/task/editTask/EditTaskView.dart';
 
 /// View model for a single task
 class TaskListItemVM extends ChangeNotifier {
@@ -17,6 +17,8 @@ class TaskListItemVM extends ChangeNotifier {
   get description => _model.description;
 
   get model => _model;
+
+  get deadline => _model.deadline;
 
   // vm - view
 
