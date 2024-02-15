@@ -24,7 +24,7 @@ class TaskListItemVM extends ChangeNotifier {
 
   void onCheckToggle(bool? value) {
     _model.setComplete(value);
-    _taskListVM.onTaskUpdate(_model);
+    _taskListVM.updateTask(_model);
     notifyListeners();
   }
 

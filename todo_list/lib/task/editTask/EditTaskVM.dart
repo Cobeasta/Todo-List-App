@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:todo_list/database/tables/Task.dart';
 import 'package:todo_list/main.dart';
 import 'package:todo_list/task/taskList/TaskListBase.dart';
 import 'package:todo_list/task/TaskModel.dart';
@@ -83,10 +82,8 @@ class EditTaskVM extends ChangeNotifier {
       _taskListVM.addTask(_taskModel);
     } else {
       _repository.updateTask(_taskModel);
-      _taskListVM.onTaskUpdate(_taskModel);
     }
-
-
+    notifyListeners();
     Navigator.pop(context, _taskModel);
   }
 }

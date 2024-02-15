@@ -25,11 +25,11 @@ abstract class TaskListVMBase extends ChangeNotifier {
 
   void removeTask(TaskModel model);
 
-  void update();
-
   Future<void> onRefresh();
-  void onTaskUpdate(TaskModel task);
 
-
+  void updateTask(TaskModel model) async {
+    await _repository.updateTask(model);
+    notifyListeners();
+  }
 
 }
