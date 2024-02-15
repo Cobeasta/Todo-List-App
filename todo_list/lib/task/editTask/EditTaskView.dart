@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:todo_list/basic_widgets/TaskListCheckBox.dart';
-import 'package:todo_list/basic_widgets/TaskListTextField.dart';
 import 'package:todo_list/database/typeConverters/DateTimeConverter.dart';
 import 'package:todo_list/task/taskList/TaskListBase.dart';
 import 'package:todo_list/task/TaskModel.dart';
@@ -38,7 +37,7 @@ class EditTaskModalView extends State<EditTaskModal> {
               (val) => _viewmodel.onCheckToggle(context, val)),
           child: Expanded(
               child: TextField(
-            decoration: InputDecoration(
+            decoration: const InputDecoration(
               hintText: "Task Title",
             ),
             controller: _viewmodel.titleController,
@@ -51,7 +50,7 @@ class EditTaskModalView extends State<EditTaskModal> {
                 Transform.scale(scale: 1.3, child: const Icon(Icons.edit_note)),
             child: Expanded(
                 child: TextField(
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 hintText: "Description",
               ),
               controller: _viewmodel.descriptionController,
@@ -98,10 +97,10 @@ class EditTaskModalView extends State<EditTaskModal> {
       textBaseline: TextBaseline.ideographic,
       children: [
         Container(
-          child: leading ?? const SizedBox.square(),
           width: 30,
           height: 30,
           padding: const EdgeInsets.only(right: 10),
+          child: leading ?? const SizedBox.square(),
         ),
         child
       ],

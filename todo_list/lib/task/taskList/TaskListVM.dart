@@ -1,70 +1,100 @@
-import 'package:flutter/material.dart';
+import 'dart:collection';
+
+import 'package:todo_list/database/typeConverters/DateTimeConverter.dart';
 import 'package:todo_list/task/taskList/TaskListBase.dart';
 import 'package:todo_list/task/TaskModel.dart';
-import 'package:todo_list/task/taskList/taskFilters/DeadlineTaskSorter.dart';
-import 'package:todo_list/task/taskList/taskFilters/TaskFilterBase.dart';
-import 'package:todo_list/task/taskList/taskListItem/TaskListHeader.dart';
-
-import 'taskFilters/CompletedTaskFilter.dart';
 
 class TaskListVM extends TaskListVMBase {
-  final List<TaskListFilterBase> _filters = [];
+  bool loading = false;
 
-  List<TaskListFilterBase> get filters => _filters;
-
-  final bool _incompleteFilterEnable = true;
-  final bool _completeFilterEnable = true;
-
-  final bool _groupByDeadline = false;
-  final bool _sortByDeadline = true;
-
-  // all/uncategorized tasks
-
-  late final DeadlineTaskSorter _uncategorizedTasks;
-
-  /* List<FilterItem> get listViewItems {
-    return [...filters.expand((element) => element.items)];
-  }*/
-  final List<Widget> _listItems = [];
-  final List<TaskModel> _tasks = []; // all tasks in vm
-
-  List<Widget> get listItems => _listItems;
-
-  TaskListVM() {
-    if (_incompleteFilterEnable) {
-      _filters.add(CompletedTaskFilter(true, this));
-    }
-    if (_groupByDeadline) {}
-    if (_completeFilterEnable) {
-      _filters.add(CompletedTaskFilter(false, this));
-    }
-    _uncategorizedTasks = DeadlineTaskSorter(this, "");
+  static SplayTreeMap<DateTime, Set<TaskModel>> getTaskSet() {
+    return SplayTreeMap(compareDates);
   }
 
-  void sortTasks(List<TaskModel> tasks) {
-    for (var task in tasks) {
-      sortTask(task);
-    }
+  static int compareDates(DateTime key1, DateTime key2) {
+    return int.parse("${key1.year}${key1.month}${key1.day}") -
+        int.parse("${key2.year}${key2.month}${key2.day}");
   }
 
-  void sortTask(TaskModel task) {
-    bool filtered = false;
-    for (var filter in _filters) {
-      if (filter.addTask(task)) {
-        filtered = true;
-      } else {
-        filter.removeTask(task);
+  final SplayTreeMap<DateTime, Set<TaskModel>> _taskMap =
+      SplayTreeMap(compareDates);
+
+  List<TaskModel> getOverdue() {
+    DateTime tod = DateTimeConverter.today();
+    int todInt = int.parse("${tod.year}${tod.month}${tod.day}");
+    List<TaskModel> tasks = [];
+    // add all tasks with due dates before today to return
+    tasks.addAll(_taskMap.entries
+        .where((element) =>
+            int.parse(
+                    "${element.key.year}${element.key.month}${element.key.day}") -
+                todInt <
+            0)
+        .expand((element) => element.value)
+        .where((element) => !element.isComplete));
+
+    return tasks;
+  }
+
+  List<TaskModel> getByDay(DateTime day) {
+    // add all tasks with due dates  after today
+    List<TaskModel> mapResult = _taskMap.entries
+        .where((element) =>
+            element.key.year == day.year &&
+            element.key.month == day.month &&
+            element.key.day == day.day)
+        .expand((element) => element.value)
+        .toList();
+    return mapResult;
+  }
+
+  SplayTreeMap<DateTime, Set<TaskModel>> getUpcoming() {
+    DateTime now = DateTime.now();
+    DateTime tom = DateTime(now.year, now.month, now.day + 1);
+
+    SplayTreeMap<DateTime, Set<TaskModel>> upcoming = getTaskSet();
+    // add all tasks with due dates  after today
+    _taskMap.entries
+        .where((element) => element.key.isAfter(tom))
+        .forEach((element) {
+      if (upcoming[element.key] == null) {
+        upcoming[element.key] = <TaskModel>{};
       }
+      upcoming[element.key]!.addAll(element.value.where((e) => !e.isComplete));
+    });
+    return upcoming;
+  }
+
+  Set<TaskModel> getCompleted() {
+    Set<TaskModel> completed = <TaskModel>{};
+    for (var element in _taskMap.entries) {
+      List<TaskModel> compl = element.value.where((e) => e.isComplete).toList();
+      completed.addAll(compl);
     }
-    if (!filtered) _uncategorizedTasks.addTask(task);
+    return completed;
   }
 
   @override
   void addTask(TaskModel model) {
-    sortTask(model);
-    onChange();
+    // initialize map list for deadline if null
+    if (_taskMap[model.deadline] == null) {
+      _taskMap[model.deadline] = <TaskModel>{};
+    }
+    _taskMap[model.deadline]!.add(model);
+    notifyListeners();
   }
 
+  void addTasks(List<TaskModel> models) {
+    for (var model in models) {
+      if (_taskMap[model.deadline] == null) {
+        _taskMap[model.deadline] = <TaskModel>{};
+      }
+      _taskMap[model.deadline]!.add(model);
+    }
+    // initialize map list for deadline if null
+
+    notifyListeners();
+  }
 
   @override
   Future<void> onRefresh() async {
@@ -72,7 +102,22 @@ class TaskListVM extends TaskListVMBase {
       init(onRefresh);
       return;
     }
-    update();
+    getAllTasks();
+  }
+
+  void getAllTasks() async {
+    if (!super.initialized) {
+      init(getAllTasks);
+      return;
+    }
+    loading = true;
+    notifyListeners();
+    _taskMap.forEach((key, value) => value.clear());
+    _taskMap.clear();
+    List<TaskModel> tasks = await super.repository.listTasks();
+    addTasks(tasks);
+    loading = false;
+    notifyListeners();
   }
 
   // Task list implementations
@@ -83,93 +128,33 @@ class TaskListVM extends TaskListVMBase {
     if (!initialized) {
       init(() => removeTask(model));
     }
-    if (model.id == null) return;
-
-    resetTask(model);
-    onChange();
-  }
-
-  @override
-  void update() async {
-    if (!super.initialized) {
-      init(update);
-      return;
+    if (_taskMap[model.deadline] != null) {
+      _taskMap[model.deadline]!
+          .removeWhere((element) => element.id == model.id);
     }
-    reset();
-
-    _tasks.clear();
-    super.repository.listTasks().then((tasks) {
-      _tasks.addAll(tasks);
-      sortTasks(tasks);
-      onChange();
-    });
-  }
-
-  @override
-  void onTaskUpdate(TaskModel task) {
-    if (!super.initialized) {
-      init(() => onTaskUpdate(task));
-    }
-    sortTask(task);
-
-    onChange();
   }
 
   void deleteCompletedTasks() {
     List<TaskModel> toRemove = [];
-    for (TaskModel task in _tasks) {
-      if (task.isComplete) {
-        toRemove.add(task);
-      }
+
+    _taskMap.forEach((key, value) {
+      toRemove.addAll(value.where((element) => element.isComplete));
+      value.removeWhere((element) => element.isComplete);
+    });
+    for (var element in toRemove) {
+      repository.deleteTask(element.id);
     }
-    for (TaskModel task in toRemove) {
-      resetTask(task);
-      super.repository.deleteTask(task.id);
-    }
-    onChange();
-  }
-
-  // helper functions
-
-  void reset() {
-    // Empty filters and repopulate
-    _uncategorizedTasks.clear();
-    for (var filter in _filters) {
-      filter.clear();
-    }
-  }
-
-  TaskModel resetTask(TaskModel task) {
-    // remove from all filters
-    _tasks.remove(task);
-
-    for (var filter in _filters) {
-      filter.removeTask(task);
-    }
-    // create new task from the data in the last task
-    TaskModel newInstance = TaskModel(task.getData());
-    return newInstance;
-  }
-
-  void rebuildFilters() {
-    _listItems.clear();
-    for (var filter in _filters) {
-      List<Widget> items = filter.listForGroupedItems();
-      if(items.length > 1) {
-        _listItems.addAll(items);
-      }
-    }
-    List<Widget> uncategorizedSection = _uncategorizedTasks.listForSortedItems();
-    if(uncategorizedSection.length > 0) {
-      _listItems.add(TaskListHeader("Other"));
-      _listItems.addAll(uncategorizedSection);
-    }
-  }
-
-  void sortItems() {}
-
-  void onChange() {
-    rebuildFilters();
     notifyListeners();
+  }
+
+  SplayTreeMap<DateTime, Set<TaskModel>> getAfter(DateTime start) {
+    SplayTreeMap<DateTime, Set<TaskModel>> tasksAfterDate = getTaskSet();
+    _taskMap.keys
+        .where((element) =>
+            element.isAfter(start) || element.isAtSameMomentAs(start))
+        .forEach((date) {
+      tasksAfterDate[date] = _taskMap[date]!;
+    });
+    return tasksAfterDate;
   }
 }

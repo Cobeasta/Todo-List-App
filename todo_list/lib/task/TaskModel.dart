@@ -6,7 +6,8 @@ class TaskModel {
       : _id = task.id,
         _title = task.title,
         _description = task.description,
-        _deadline = task.deadline;
+        _deadline = task.deadline,
+        _completedDate = task.completedDate;
 
   TaskModel.createEmpty()
       : _id = null,
@@ -26,7 +27,11 @@ class TaskModel {
   String get description => _description;
 
   DateTime? get completedDate => _completedDate;
+
   bool get isComplete => _completedDate != null;
+
+  bool get overdue =>
+      _deadline.isBefore(DateTimeConverter.today()) && !isComplete;
 
   DateTime get deadline => _deadline;
 
