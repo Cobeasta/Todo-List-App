@@ -105,6 +105,12 @@ class TaskListVM extends TaskListVMBase {
     getAllTasks();
   }
 
+  @override
+  void render() {
+    notifyListeners();
+  }
+
+
   void getAllTasks() async {
     if (!super.initialized) {
       init(getAllTasks);
@@ -153,7 +159,10 @@ class TaskListVM extends TaskListVMBase {
         .where((element) =>
             element.isAfter(start) || element.isAtSameMomentAs(start))
         .forEach((date) {
-      tasksAfterDate[date] = _taskMap[date]!;
+          if(_taskMap[date]!.isNotEmpty) {
+            tasksAfterDate[date] = _taskMap[date]!;
+          }
+
     });
     return tasksAfterDate;
   }

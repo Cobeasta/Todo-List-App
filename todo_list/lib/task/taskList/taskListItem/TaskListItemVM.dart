@@ -30,7 +30,7 @@ class TaskListItemVM extends ChangeNotifier {
 
   /// List item clicked. Open editing modal
   void onTap(BuildContext context) {
-    openEditTaskModal(_model, _taskListVM, context);
+    openEditTaskModal(_model, _taskListVM, context).then((value) => _taskListVM.render(),);
     notifyListeners();
   }
 }
