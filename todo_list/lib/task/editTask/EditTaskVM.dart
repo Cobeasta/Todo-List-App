@@ -30,8 +30,7 @@ class EditTaskVM extends ChangeNotifier {
   void init() {
     _initialized = false;
     _titleController.text = _taskModel.title ?? "";
-    _descriptionController.text =
-    _taskModel.description ?? "";
+    _descriptionController.text = _taskModel.description ?? "";
 
     getIt.getAsync<TaskRepository>().then(start);
   }

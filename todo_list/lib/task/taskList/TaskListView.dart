@@ -29,12 +29,10 @@ class TaskListView extends State<TaskList> {
         floatingActionButton: buildFAB(context));
   }
 
+  // main components of screen
   PreferredSizeWidget buildAppBar(BuildContext context) {
     return AppBar(
-        backgroundColor: Theme
-            .of(context)
-            .colorScheme
-            .inversePrimary,
+        backgroundColor: Theme.of(context).colorScheme.inversePrimary,
         title: Text(widget.title),
         actions: [
           MenuAnchor(
@@ -53,15 +51,14 @@ class TaskListView extends State<TaskList> {
               },
               menuChildren: List<MenuItemButton>.generate(
                   1,
-                      (index) =>
-                      MenuItemButton(
-                          onPressed: () {
-                            _vm.deleteCompletedTasks();
-                          },
-                          child: const Text("Delete Completed Tasks"))))
+                  (index) => MenuItemButton(
+                      onPressed: () {
+                        _vm.deleteCompletedTasks();
+                      },
+                      child: const Text("Delete Completed Tasks"))))
         ]);
   }
-
+  // build list of all tasks grouped and sorted by date.
   Widget buildList(BuildContext context) {
     return RefreshIndicator(
         onRefresh: _vm.onRefresh,
@@ -81,85 +78,99 @@ class TaskListView extends State<TaskList> {
               },
             )));
   }
-
+  // Build floating action button
   Widget buildFAB(BuildContext context) {
-    return FloatingActionButton(onPressed: () {
-      openEditTaskModal(TaskModel.createEmpty(), _vm, context).then((value) {
-        value ?? _vm.addTask(value);
-        return value;
-      });
-    });
-  }
-
-  Widget buildHeader(String name, BuildContext context) {
-    return Text(name);
-  }
-
-  Widget buildOverdueTasks(BuildContext context) {
-    return ExpansionTile(
-      title: buildHeader("Overdue", context),
-      controlAffinity: ListTileControlAffinity.leading,
-      children: [
-        ..._vm.getOverdue().map((e) => TaskListItemWidget(e, _vm)).toList()
-      ],
+    return FloatingActionButton(
+      onPressed: () {
+        openEditTaskModal(TaskModel.createEmpty(), _vm, context).then(
+          (value) {
+            value ?? _vm.addTask(value);
+            _vm.render();
+          },
+        );
+      },
+      child: const Icon(Icons.add),
     );
   }
 
+  // building sub-lists
+  Widget buildOverdueTasks(BuildContext context) {
+    // get overdue tasks
+    List<TaskModel> tasks = _vm.getOverdue();
+    if (tasks.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return buildExpansionTile(context, "Overdue", tasks,
+        initiallyExpanded: true);
+  }
+  Widget buildToday(BuildContext context) {
+    // get tasks due today,then build a widget for the expandable list
+    List<TaskModel> tasks = _vm.getByDay(DateTimeConverter.today());
+    if (tasks.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return buildExpansionTile(context, "Today", tasks, initiallyExpanded: true);
+  }
+  Widget buildTomorrow(BuildContext context) {
+    final tod = DateTimeConverter.today();
+    List<TaskModel> tasks =
+        _vm.getByDay(DateTime(tod.year, tod.month, tod.day + 1));
+    return buildExpansionTile(context, "Tomorrow", tasks);
+  }
   List<Widget> buildUpcoming(BuildContext context) {
     List<Widget> upcoming = [];
-
     // constants
     final tod = DateTimeConverter.today();
     final start = DateTime(tod.year, tod.month, tod.day + 2); // start in 2 days
     SplayTreeMap<DateTime, Set<TaskModel>> tasks = _vm.getAfter(start);
 
     for (var key in tasks.keys) {
+      if(tasks[key] != null && tasks[key]!.isEmpty) {
+        continue;
+      }
       String date = DateTimeConverter.formatDate(key);
       String day = getWeekday(key);
-      upcoming.add(ExpansionTile(
-        title: buildHeader("$day $date", context),
-        children: [
-          ...tasks[key]!.map(
-                  (e) => TaskListItemWidget(e, _vm)),
-        ],
-        controlAffinity: ListTileControlAffinity.leading,),
-      );
-  }
+      upcoming.add(buildExpansionTile(context, "$day $date", tasks[key]!));
+      if (upcoming.isEmpty) {
+        if (tasks.isEmpty) {
+          return [const SizedBox.shrink()];
+        }
+      }
+    }
     return upcoming;
   }
+  Widget buildCompleted(BuildContext context) {
+    List<TaskModel> completed = _vm.getCompleted().toList();
+    if (completed.isEmpty) {
+      return const SizedBox.shrink();
+    }
+    return buildExpansionTile(context, "Completed", [...completed]);
+  }
 
-  Widget buildToday(BuildContext context) {
-    return ExpansionTile(
-      title: buildHeader("Today", context),
-      children: [
-        ..._vm
-            .getByDay(DateTimeConverter.today())
-            .map((e) => TaskListItemWidget(e, _vm))
-            .toList()
-      ],
-      controlAffinity: ListTileControlAffinity.leading,
+
+// reused widget building patterns
+  Widget buildHeader(String name, BuildContext context) {
+    return Text(
+      name,
+      style: Theme.of(context).textTheme.headlineMedium,
     );
   }
-
-  Widget buildTomorrow(BuildContext context) {
-    final tod = DateTimeConverter.today();
-    return ExpansionTile(title: buildHeader("Tomorrow", context),
-      children: [
-        ..._vm
-            .getByDay(DateTime(tod.year, tod.month, tod.day + 1))
-            .map((e) => TaskListItemWidget(e, _vm))
-            .toList()
-      ],
-      controlAffinity: ListTileControlAffinity.leading,);
-  }
-
-  Widget buildCompleted(BuildContext context) {
-    List<Widget> completed =
-    _vm.getCompleted().map((e) => TaskListItemWidget(e, _vm)).toList();
+  Widget buildExpansionTile(
+      BuildContext context, String title, Iterable<TaskModel> tasks,
+      {initiallyExpanded = false}) {
     return ExpansionTile(
-      title: buildHeader("Completed", context),
+      title: buildHeader(title, context),
       controlAffinity: ListTileControlAffinity.leading,
-      children: [...completed],
+      initiallyExpanded: initiallyExpanded,
+      trailing: Text(
+        "${tasks.length}",
+        style: Theme.of(context).textTheme.headlineSmall,
+      ),
+      children: [
+        ...tasks.map(
+          (e) => TaskListItemWidget(e, _vm),
+        )
+      ],
     );
   }
 }

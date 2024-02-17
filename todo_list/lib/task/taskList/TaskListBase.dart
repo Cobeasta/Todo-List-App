@@ -32,4 +32,6 @@ abstract class TaskListVMBase extends ChangeNotifier {
     notifyListeners();
   }
 
+  render();
+
 }
