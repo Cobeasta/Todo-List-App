@@ -3,96 +3,35 @@ import 'dart:collection';
 import 'package:todo_list/database/typeConverters/DateTimeConverter.dart';
 import 'package:todo_list/task/taskList/TaskListBase.dart';
 import 'package:todo_list/task/TaskModel.dart';
+import 'package:collection/collection.dart';
+
+
 
 class TaskListVM extends TaskListVMBase {
   bool loading = false;
+  final List<TaskModel> _tasks = [];
 
-  static SplayTreeMap<DateTime, Set<TaskModel>> getTaskSet() {
-    return SplayTreeMap(compareDates);
-  }
-
-  static int compareDates(DateTime key1, DateTime key2) {
-    return int.parse("${key1.year}${key1.month}${key1.day}") -
-        int.parse("${key2.year}${key2.month}${key2.day}");
-  }
-
-  final SplayTreeMap<DateTime, Set<TaskModel>> _taskMap =
-      SplayTreeMap(compareDates);
 
   List<TaskModel> getOverdue() {
-    DateTime tod = DateTimeConverter.today();
-    int todInt = int.parse("${tod.year}${tod.month}${tod.day}");
-    List<TaskModel> tasks = [];
-    // add all tasks with due dates before today to return
-    tasks.addAll(_taskMap.entries
-        .where((element) =>
-            int.parse(
-                    "${element.key.year}${element.key.month}${element.key.day}") -
-                todInt <
-            0)
-        .expand((element) => element.value)
-        .where((element) => !element.isComplete));
-
-    return tasks;
-  }
-
-  List<TaskModel> getByDay(DateTime day) {
-    // add all tasks with due dates  after today
-    List<TaskModel> mapResult = _taskMap.entries
-        .where((element) =>
-            element.key.year == day.year &&
-            element.key.month == day.month &&
-            element.key.day == day.day)
-        .expand((element) => element.value)
-        .toList();
-    return mapResult;
-  }
-
-  SplayTreeMap<DateTime, Set<TaskModel>> getUpcoming() {
-    DateTime now = DateTime.now();
-    DateTime tom = DateTime(now.year, now.month, now.day + 1);
-
-    SplayTreeMap<DateTime, Set<TaskModel>> upcoming = getTaskSet();
-    // add all tasks with due dates  after today
-    _taskMap.entries
-        .where((element) => element.key.isAfter(tom))
-        .forEach((element) {
-      if (upcoming[element.key] == null) {
-        upcoming[element.key] = <TaskModel>{};
-      }
-      upcoming[element.key]!.addAll(element.value.where((e) => !e.isComplete));
-    });
-    return upcoming;
+    // overdue tasks must not be complete
+    return _tasks.where((e) => e.overdue && !e.isComplete).toSet().toList();
   }
 
   Set<TaskModel> getCompleted() {
     Set<TaskModel> completed = <TaskModel>{};
-    for (var element in _taskMap.entries) {
-      List<TaskModel> compl = element.value.where((e) => e.isComplete).toList();
-      completed.addAll(compl);
-    }
-    return completed;
+    return _tasks.where((e) => e.isComplete).toSet();
   }
 
   @override
   void addTask(TaskModel model) {
     // initialize map list for deadline if null
-    if (_taskMap[model.deadline] == null) {
-      _taskMap[model.deadline] = <TaskModel>{};
-    }
-    _taskMap[model.deadline]!.add(model);
+    _tasks.add(model);
     notifyListeners();
   }
 
   void addTasks(List<TaskModel> models) {
-    for (var model in models) {
-      if (_taskMap[model.deadline] == null) {
-        _taskMap[model.deadline] = <TaskModel>{};
-      }
-      _taskMap[model.deadline]!.add(model);
-    }
+    _tasks.addAll(models);
     // initialize map list for deadline if null
-
     notifyListeners();
   }
 
@@ -110,7 +49,6 @@ class TaskListVM extends TaskListVMBase {
     notifyListeners();
   }
 
-
   void getAllTasks() async {
     if (!super.initialized) {
       init(getAllTasks);
@@ -118,10 +56,9 @@ class TaskListVM extends TaskListVMBase {
     }
     loading = true;
     notifyListeners();
-    _taskMap.forEach((key, value) => value.clear());
-    _taskMap.clear();
+    _tasks.clear();
     List<TaskModel> tasks = await super.repository.listTasks();
-    addTasks(tasks);
+    _tasks.addAll(tasks);
     loading = false;
     notifyListeners();
   }
@@ -134,36 +71,49 @@ class TaskListVM extends TaskListVMBase {
     if (!initialized) {
       init(() => removeTask(model));
     }
-    if (_taskMap[model.deadline] != null) {
-      _taskMap[model.deadline]!
-          .removeWhere((element) => element.id == model.id);
-    }
+    _tasks.removeWhere((element) => element.id == model.id);
   }
 
   void deleteCompletedTasks() {
     List<TaskModel> toRemove = [];
+    toRemove.addAll(_tasks.where((element) => element.isComplete));
+    _tasks.removeWhere((element) => toRemove.contains(element));
 
-    _taskMap.forEach((key, value) {
-      toRemove.addAll(value.where((element) => element.isComplete));
-      value.removeWhere((element) => element.isComplete);
-    });
     for (var element in toRemove) {
       repository.deleteTask(element.id);
     }
     notifyListeners();
   }
 
-  SplayTreeMap<DateTime, Set<TaskModel>> getAfter(DateTime start) {
-    SplayTreeMap<DateTime, Set<TaskModel>> tasksAfterDate = getTaskSet();
-    _taskMap.keys
-        .where((element) =>
-            element.isAfter(start) || element.isAtSameMomentAs(start))
-        .forEach((date) {
-          if(_taskMap[date]!.isNotEmpty) {
-            tasksAfterDate[date] = _taskMap[date]!;
-          }
+  SplayTreeMap<DateTime, List<TaskModel>> getTasksGroupedByDate(
+      {bool includeOverdue = false,
+      bool includeCompleted = false,
+      DateTime? start}) {
 
-    });
-    return tasksAfterDate;
+    SplayTreeMap<DateTime, List<TaskModel>> groupedTasks = SplayTreeMap(compareDates);
+
+    Set<TaskModel> filtered = _tasks.where((e) {
+      return (!e.overdue || includeOverdue) &&
+          (!e.isComplete || includeCompleted) &&
+          (start != null && e.deadline.isAfter(start) || start == null);
+    }).toSet();
+    for (var element in filtered) {
+      DateTime date = DateTime(
+          element.deadline.year, element.deadline.month, element.deadline.day);
+      if (groupedTasks[date] == null) {
+        groupedTasks[date] = [];
+      }
+      groupedTasks[date]!.add(element);
+    }
+    return groupedTasks;
   }
+
+  List<TaskModel> getTasksByDay(DateTime day) {
+    return _tasks.where((element) => compareDates(element.deadline, day) == 0).toList();
+  }
+}
+
+int compareDates(DateTime key1, DateTime key2) {
+  return int.parse("${key1.year}${key1.month}${key1.day}") -
+      int.parse("${key2.year}${key2.month}${key2.day}");
 }

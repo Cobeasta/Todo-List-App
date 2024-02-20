@@ -74,10 +74,7 @@ class TaskModel {
   @override
   bool operator ==(Object other) {
     if (other is TaskModel) {
-      if (_id != null && other.id != null) {
         return _id == other.id;
-      }
-      return _title == other.title;
     }
     return false;
   }
