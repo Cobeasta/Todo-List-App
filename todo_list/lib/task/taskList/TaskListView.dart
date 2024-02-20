@@ -58,6 +58,7 @@ class TaskListView extends State<TaskList> {
                       child: const Text("Delete Completed Tasks"))))
         ]);
   }
+
   // build list of all tasks grouped and sorted by date.
   Widget buildList(BuildContext context) {
     return RefreshIndicator(
@@ -92,26 +93,40 @@ class TaskListView extends State<TaskList> {
         "Overdue",
         style: Theme.of(context).textTheme.headlineMedium,
       ),
+      controlAffinity: ListTileControlAffinity.leading,
       initiallyExpanded: true,
-      children: [
-        ...tasks.map((e) => TaskListItemWidget(e, _vm))
-      ],);
+      children: [...tasks.map((e) => TaskListItemWidget(e, _vm))],
+    );
   }
+
   Widget buildToday(BuildContext context) {
     List<TaskModel> tasks = _vm.getTasksByDay(DateTimeConverter.today());
     return ListView(
       shrinkWrap: true,
-      physics:  const ClampingScrollPhysics(),
-    children: [
-      ListTile(title: Text(
-        "Today",
-        style: Theme.of(context).textTheme.headlineMedium,
-      )),
-      ...tasks.map((e) => TaskListItemWidget(e, _vm))
-    ],);
+      physics: const ClampingScrollPhysics(),
+      children: [
+        ListTile(
+          title: Text(
+            "Today",
+            style: Theme.of(context).textTheme.headlineSmall,
+          ),
+          trailing: IconButton(
+              onPressed: () => onAddTaskButton(day: DateTimeConverter.today()),
+              icon: const Icon(Icons.add)),
+        ),
+        ...tasks.map((e) => TaskListItemWidget(e, _vm))
+      ],
+    );
   }
+
   Widget buildUpcoming(BuildContext context) {
-    SplayTreeMap<DateTime, List<TaskModel>> tasks = _vm.getTasksGroupedByDate();
+    DateTime tod = DateTimeConverter.today();
+    DateTime tom = DateTime(tod.year, tod.month, tod.day + 1);
+    SplayTreeMap<DateTime, List<TaskModel>> tasks =
+        _vm.getTasksGroupedByDate(start: tom);
+    if(tasks.isEmpty) {
+      return const SizedBox.shrink();
+    }
     return ExpansionTile(
         title: Text(
           "Upcoming",
@@ -138,17 +153,17 @@ class TaskListView extends State<TaskList> {
             }
             return Column(children: [
               ListTile(
-                title: Text(
-                  title,
-                  style: Theme.of(context).textTheme.headlineSmall,
-                )
-              ),
+                  title: Text(
+                    "$title ${tasks[e]!.length}",
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  trailing: IconButton(
+                      onPressed: () => onAddTaskButton(day: date),
+                      icon: const Icon(Icons.add))),
               ListView(
                 shrinkWrap: true,
-                physics:  const ClampingScrollPhysics(),
-                children: [
-                  ...tasks[e]!.map((e) => TaskListItemWidget(e, _vm))
-                ],
+                physics: const ClampingScrollPhysics(),
+                children: [...tasks[e]!.map((e) => TaskListItemWidget(e, _vm))],
               )
             ]);
           })
