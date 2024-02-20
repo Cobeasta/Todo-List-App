@@ -71,7 +71,7 @@ class EditTaskModalView extends State<EditTaskModal> {
             child: Row(
               children: [
                 const Icon(Icons.calendar_month_outlined),
-                Text(DateTimeConverter.formatDate(_viewmodel.deadline)),
+                Text(formatDate(_viewmodel.deadline)),
               ],
             )),
         IconButton(

@@ -68,109 +68,103 @@ class TaskListView extends State<TaskList> {
               builder: (context, tlvm, child) {
                 return ListView(
                   children: [
-                    buildOverdueTasks(context),
+                    buildOverdue(context),
                     buildToday(context),
-                    buildTomorrow(context),
-                    ...buildUpcoming(context),
-                    buildCompleted(context)
+                    buildUpcoming(context),
                   ],
                 );
               },
             )));
   }
+
   // Build floating action button
   Widget buildFAB(BuildContext context) {
     return FloatingActionButton(
-      onPressed: () {
-        openEditTaskModal(TaskModel.createEmpty(), _vm, context).then(
-          (value) {
-            value ?? _vm.addTask(value);
-            _vm.render();
-          },
-        );
-      },
+      onPressed: onAddTaskButton,
       child: const Icon(Icons.add),
     );
   }
 
-  // building sub-lists
-  Widget buildOverdueTasks(BuildContext context) {
-    // get overdue tasks
+  Widget buildOverdue(BuildContext context) {
     List<TaskModel> tasks = _vm.getOverdue();
-    if (tasks.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    return buildExpansionTile(context, "Overdue", tasks,
-        initiallyExpanded: true);
+    return ExpansionTile(
+      title: Text(
+        "Overdue",
+        style: Theme.of(context).textTheme.headlineMedium,
+      ),
+      initiallyExpanded: true,
+      children: [
+        ...tasks.map((e) => TaskListItemWidget(e, _vm))
+      ],);
   }
   Widget buildToday(BuildContext context) {
-    // get tasks due today,then build a widget for the expandable list
-    List<TaskModel> tasks = _vm.getByDay(DateTimeConverter.today());
-    if (tasks.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    return buildExpansionTile(context, "Today", tasks, initiallyExpanded: true);
+    List<TaskModel> tasks = _vm.getTasksByDay(DateTimeConverter.today());
+    return ListView(
+      shrinkWrap: true,
+      physics:  const ClampingScrollPhysics(),
+    children: [
+      ListTile(title: Text(
+        "Today",
+        style: Theme.of(context).textTheme.headlineMedium,
+      )),
+      ...tasks.map((e) => TaskListItemWidget(e, _vm))
+    ],);
   }
-  Widget buildTomorrow(BuildContext context) {
-    final tod = DateTimeConverter.today();
-    List<TaskModel> tasks =
-        _vm.getByDay(DateTime(tod.year, tod.month, tod.day + 1));
-    return buildExpansionTile(context, "Tomorrow", tasks);
-  }
-  List<Widget> buildUpcoming(BuildContext context) {
-    List<Widget> upcoming = [];
-    // constants
-    final tod = DateTimeConverter.today();
-    final start = DateTime(tod.year, tod.month, tod.day + 2); // start in 2 days
-    SplayTreeMap<DateTime, Set<TaskModel>> tasks = _vm.getAfter(start);
-
-    for (var key in tasks.keys) {
-      if(tasks[key] != null && tasks[key]!.isEmpty) {
-        continue;
-      }
-      String date = DateTimeConverter.formatDate(key);
-      String day = getWeekday(key);
-      upcoming.add(buildExpansionTile(context, "$day $date", tasks[key]!));
-      if (upcoming.isEmpty) {
-        if (tasks.isEmpty) {
-          return [const SizedBox.shrink()];
-        }
-      }
-    }
-    return upcoming;
-  }
-  Widget buildCompleted(BuildContext context) {
-    List<TaskModel> completed = _vm.getCompleted().toList();
-    if (completed.isEmpty) {
-      return const SizedBox.shrink();
-    }
-    return buildExpansionTile(context, "Completed", [...completed]);
-  }
-
-
-// reused widget building patterns
-  Widget buildHeader(String name, BuildContext context) {
-    return Text(
-      name,
-      style: Theme.of(context).textTheme.headlineMedium,
-    );
-  }
-  Widget buildExpansionTile(
-      BuildContext context, String title, Iterable<TaskModel> tasks,
-      {initiallyExpanded = false}) {
+  Widget buildUpcoming(BuildContext context) {
+    SplayTreeMap<DateTime, List<TaskModel>> tasks = _vm.getTasksGroupedByDate();
     return ExpansionTile(
-      title: buildHeader(title, context),
-      controlAffinity: ListTileControlAffinity.leading,
-      initiallyExpanded: initiallyExpanded,
-      trailing: Text(
-        "${tasks.length}",
-        style: Theme.of(context).textTheme.headlineSmall,
-      ),
-      children: [
-        ...tasks.map(
-          (e) => TaskListItemWidget(e, _vm),
-        )
-      ],
+        title: Text(
+          "Upcoming",
+          style: Theme.of(context).textTheme.headlineMedium,
+        ),
+        controlAffinity: ListTileControlAffinity.leading,
+        initiallyExpanded: false,
+        children: [
+          ...tasks.keys.map((e) {
+            DateTime date = e;
+            List<TaskModel> tasksByDate = tasks[e]!;
+            String title;
+            int dayComp = compareDates(date, DateTimeConverter.today());
+            switch (dayComp) {
+              case 0:
+                title = "Today";
+                break;
+              case 1:
+                title = "Tomorrow";
+                break;
+              default:
+                title = "${formatDate(date)} ${getWeekday(date)}";
+                break;
+            }
+            return Column(children: [
+              ListTile(
+                title: Text(
+                  title,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                )
+              ),
+              ListView(
+                shrinkWrap: true,
+                physics:  const ClampingScrollPhysics(),
+                children: [
+                  ...tasks[e]!.map((e) => TaskListItemWidget(e, _vm))
+                ],
+              )
+            ]);
+          })
+        ]);
+  }
+
+  void onAddTaskButton({DateTime? day}) {
+    TaskModel task = TaskModel.createEmpty();
+    if (day != null) {
+      task.updateDeadline(day);
+    }
+    openEditTaskModal(task, _vm, context).then(
+      (value) {
+        value ?? _vm.addTask(value);
+        _vm.render();
+      },
     );
   }
 }

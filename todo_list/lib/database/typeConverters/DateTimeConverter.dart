@@ -12,12 +12,6 @@ class DateTimeConverter extends TypeConverter<DateTime, int> {
     return value.millisecondsSinceEpoch;
   }
 
-  static String formatDate(DateTime dateTime) {
-    String month = DateFormat.MMM().format(dateTime);
-    String day = DateFormat.d().format(dateTime);
-    return "$month $day";
-  }
-
   static DateTime today() {
     DateTime now = DateTime.now();
     return DateTime(now.year, now.month, now.day);
@@ -51,6 +45,12 @@ class OptionalDateTimeConverter extends TypeConverter<DateTime?, int?> {
     DateTime now = DateTime.now();
     return DateTime(now.year, now.month, now.day);
   }
+}
+
+String formatDate(DateTime dateTime) {
+  String month = DateFormat.MMM().format(dateTime);
+  String day = DateFormat.d().format(dateTime);
+  return "$month $day";
 }
 
 String getWeekday(DateTime dateTime) {

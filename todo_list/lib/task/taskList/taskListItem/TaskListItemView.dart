@@ -32,7 +32,7 @@ class TaskItemView extends State<TaskListItemWidget> {
       children: [
         const Icon(Icons.calendar_month_outlined),
         Text(
-          DateTimeConverter.formatDate(_vm.deadline),
+          formatDate(_vm.deadline),
           style: Theme.of(context).textTheme.bodyMedium,
         )
       ],
