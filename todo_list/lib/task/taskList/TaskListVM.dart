@@ -1,16 +1,19 @@
 import 'dart:collection';
 
-import 'package:todo_list/database/typeConverters/DateTimeConverter.dart';
 import 'package:todo_list/task/taskList/TaskListBase.dart';
 import 'package:todo_list/task/TaskModel.dart';
-import 'package:collection/collection.dart';
-
-
 
 class TaskListVM extends TaskListVMBase {
+
   bool loading = false;
+  bool _showCompleted = false;
   final List<TaskModel> _tasks = [];
 
+  set setShowCompleted(bool val) {
+    _showCompleted = val;
+    notifyListeners();
+  }
+  bool get  showCompleted  => _showCompleted;
 
   List<TaskModel> getOverdue() {
     // overdue tasks must not be complete
@@ -18,7 +21,6 @@ class TaskListVM extends TaskListVMBase {
   }
 
   Set<TaskModel> getCompleted() {
-    Set<TaskModel> completed = <TaskModel>{};
     return _tasks.where((e) => e.isComplete).toSet();
   }
 
@@ -89,8 +91,8 @@ class TaskListVM extends TaskListVMBase {
       {bool includeOverdue = false,
       bool includeCompleted = false,
       DateTime? start}) {
-
-    SplayTreeMap<DateTime, List<TaskModel>> groupedTasks = SplayTreeMap(compareDates);
+    SplayTreeMap<DateTime, List<TaskModel>> groupedTasks =
+        SplayTreeMap(compareDates);
 
     Set<TaskModel> filtered = _tasks.where((e) {
       return (!e.overdue || includeOverdue) &&
@@ -109,7 +111,9 @@ class TaskListVM extends TaskListVMBase {
   }
 
   List<TaskModel> getTasksByDay(DateTime day) {
-    return _tasks.where((element) => compareDates(element.deadline, day) == 0).toList();
+    return _tasks
+        .where((element) => compareDates(element.deadline, day) == 0)
+        .toList();
   }
 }
 

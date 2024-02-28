@@ -12,6 +12,8 @@ import 'package:todo_list/task/taskList/taskListItem/TaskListItem.dart';
 class TaskListView extends State<TaskList> {
   late TaskListVM _vm;
 
+  bool get showCompleted => _vm.showCompleted;
+
   TaskListView();
 
   @override
@@ -23,10 +25,16 @@ class TaskListView extends State<TaskList> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-        appBar: buildAppBar(context),
-        body: buildList(context),
-        floatingActionButton: buildFAB(context));
+    return ChangeNotifierProvider(
+        create: (_) => _vm,
+        child: Consumer<TaskListVM>(
+          builder: (context, value, child) {
+            return Scaffold(
+                appBar: buildAppBar(context),
+                body: buildList(context),
+                floatingActionButton: buildFAB(context));
+          },
+        ));
   }
 
   // main components of screen
@@ -36,49 +44,56 @@ class TaskListView extends State<TaskList> {
         title: Text(widget.title),
         actions: [
           MenuAnchor(
-              builder: (context, controller, child) {
-                return IconButton(
-                  onPressed: () {
-                    if (controller.isOpen) {
-                      controller.close();
-                    } else {
-                      controller.open();
-                    }
-                  },
-                  icon: const Icon(Icons.more_vert),
-                  tooltip: "Show menu",
-                );
-              },
-              menuChildren: List<MenuItemButton>.generate(
-                  1,
-                  (index) => MenuItemButton(
-                      onPressed: () {
-                        _vm.deleteCompletedTasks();
-                      },
-                      child: const Text("Delete Completed Tasks"))))
+            builder: (context, controller, child) {
+              return IconButton(
+                onPressed: () {
+                  if (controller.isOpen) {
+                    controller.close();
+                  } else {
+                    controller.open();
+                  }
+                },
+                icon: const Icon(Icons.more_vert),
+                tooltip: "Show menu",
+              );
+            },
+            menuChildren: [
+              MenuItemButton(
+                child: const Text("Delete Completed"),
+                onPressed: () {
+                  _vm.deleteCompletedTasks();
+                },
+              ),
+              MenuItemButton(
+                onPressed: () => _vm.setShowCompleted = !_vm.showCompleted,
+                leadingIcon: IconButton(
+                  icon: Icon(_vm.showCompleted
+                      ? Icons.check_box_rounded
+                      : Icons.check_box_outline_blank_rounded),
+                  onPressed: () => _vm.setShowCompleted = !_vm.showCompleted,
+                ),
+                child: const Text("Show Completed"),
+              )
+            ],
+            onOpen: () {},
+            onClose: () {},
+          )
         ]);
   }
 
-  // build list of all tasks grouped and sorted by date.
+// build list of all tasks grouped and sorted by date.
   Widget buildList(BuildContext context) {
     return RefreshIndicator(
         onRefresh: _vm.onRefresh,
-        child: ChangeNotifierProvider(
-            create: (_) => _vm,
-            child: Consumer<TaskListVM>(
-              builder: (context, tlvm, child) {
-                return ListView(
-                  children: [
-                    buildOverdue(context),
-                    buildToday(context),
-                    buildUpcoming(context),
-                  ],
-                );
-              },
-            )));
+        child: ListView(children: [
+          buildOverdue(context),
+          buildToday(context),
+          buildUpcoming(context),
+          buildCompleted(context)
+        ]));
   }
 
-  // Build floating action button
+// Build floating action button
   Widget buildFAB(BuildContext context) {
     return FloatingActionButton(
       onPressed: onAddTaskButton,
@@ -124,7 +139,7 @@ class TaskListView extends State<TaskList> {
     DateTime tom = DateTime(tod.year, tod.month, tod.day + 1);
     SplayTreeMap<DateTime, List<TaskModel>> tasks =
         _vm.getTasksGroupedByDate(start: tom);
-    if(tasks.isEmpty) {
+    if (tasks.isEmpty) {
       return const SizedBox.shrink();
     }
     return ExpansionTile(
@@ -168,6 +183,23 @@ class TaskListView extends State<TaskList> {
             ]);
           })
         ]);
+  }
+
+  Widget buildCompleted(BuildContext context) {
+    List<Widget> tasks =
+        _vm.getCompleted().map((e) => TaskListItemWidget(e, _vm)).toList();
+    if (_vm.showCompleted) {
+      return ExpansionTile(
+        title: Text(
+          "Completed",
+          style: Theme.of(context).textTheme.headlineMedium,
+        ),
+        controlAffinity: ListTileControlAffinity.leading,
+        initiallyExpanded: false,
+        children: [...tasks],
+      );
+    }
+    return const SizedBox.shrink();
   }
 
   void onAddTaskButton({DateTime? day}) {
