@@ -113,7 +113,7 @@ class TaskListView extends State<TaskList> {
   Widget buildList(BuildContext context) {
     return RefreshIndicator(
         onRefresh: _vm.onRefresh,
-        child: ListView(children: [
+        child: ListView(shrinkWrap: true, physics: const ClampingScrollPhysics(), children: [
           buildOverdue(context),
           buildTasks(context),
           buildCompleted(context)
@@ -165,6 +165,7 @@ class TaskListView extends State<TaskList> {
     List<DateTime> days = tasks.keys.toList();
     return ListView.builder(
       shrinkWrap: true,
+      physics: const ClampingScrollPhysics(),
       itemCount: days.length,
       itemBuilder: (context, index) {
         DateTime date = days[index];
