@@ -141,7 +141,7 @@ class TaskListView extends State<TaskList> {
     return ExpansionTile(
       title: Text(
         "Overdue",
-        style: Theme.of(context).textTheme.headlineMedium,
+        style: Theme.of(context).textTheme.headlineSmall,
       ),
       controlAffinity: ListTileControlAffinity.leading,
       initiallyExpanded: true,
@@ -176,6 +176,12 @@ class TaskListView extends State<TaskList> {
       result.add(header);
       result.addAll(daysTasks.map(
               (e) => TaskListItemWidget(e, _vm)));
+      result.add(Divider(
+        height: 5,
+        thickness: 5,
+        indent: 0,
+        endIndent: 0,
+      ));
     }
     return result;
 
@@ -229,7 +235,7 @@ class TaskListView extends State<TaskList> {
     }
     Text title = Text(
       titleStr,
-      style: Theme.of(context).textTheme.headlineSmall,
+      style: Theme.of(context).textTheme.bodyLarge,
     );
     Text subtitle;
 
@@ -237,22 +243,23 @@ class TaskListView extends State<TaskList> {
     if (tasks == null || tasks.isEmpty) {
       subtitle = Text(
         "No tasks due",
-        style: Theme.of(context).textTheme.bodyLarge,
+        style: Theme.of(context).textTheme.bodyMedium,
       );
     } else if (tasks.length > 1) {
       subtitle = Text(
         "${tasks.length} tasks due",
-        style: Theme.of(context).textTheme.bodyLarge,
+        style: Theme.of(context).textTheme.bodyMedium,
       );
     } else {
       subtitle = Text(
         "${tasks.length} task due",
-        style: Theme.of(context).textTheme.bodyLarge,
+        style: Theme.of(context).textTheme.bodyMedium,
       );
     }
     return ListTile(
       title: title,
       subtitle: subtitle,
+
     );
   }
 }
