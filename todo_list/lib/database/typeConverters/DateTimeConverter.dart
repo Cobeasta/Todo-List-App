@@ -16,6 +16,10 @@ class DateTimeConverter extends TypeConverter<DateTime, int> {
     DateTime now = DateTime.now();
     return DateTime(now.year, now.month, now.day);
   }
+  static DateTime tomorrow() {
+    DateTime now = DateTime.now();
+    return DateTime(now.year, now.month, now.day + 1);
+  }
 }
 
 class OptionalDateTimeConverter extends TypeConverter<DateTime?, int?> {

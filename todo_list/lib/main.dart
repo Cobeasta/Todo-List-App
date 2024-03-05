@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
         brightness: Brightness.dark),
         useMaterial3: true,
       ),
-      home: const TaskList('Task List'),
+      home: const TaskList(),
     );
   }
 }

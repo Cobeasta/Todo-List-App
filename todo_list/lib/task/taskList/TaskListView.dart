@@ -38,46 +38,74 @@ class TaskListView extends State<TaskList> {
   }
 
   // main components of screen
+  final MenuController _overflowController = MenuController();
+
   PreferredSizeWidget buildAppBar(BuildContext context) {
     return AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
+        title: Text(_vm.mode.name),
         actions: [
           MenuAnchor(
-            builder: (context, controller, child) {
-              return IconButton(
+              controller: _overflowController,
+              menuChildren: [
+                SubmenuButton(
+                  menuChildren: [
+                    RadioMenuButton(
+                        value: TaskListModes.today,
+                        groupValue: _vm.mode,
+                        onChanged: (value) => _vm.configure(mode: value),
+                        child: const Text("Today")),
+                    RadioMenuButton(
+                        value: TaskListModes.week,
+                        groupValue: _vm.mode,
+                        onChanged: (value) => _vm.configure(mode: value),
+                        child: const Text("Next 7 Days")),
+                    RadioMenuButton(
+                        value: TaskListModes.upcoming,
+                        groupValue: _vm.mode,
+                        onChanged: (value) => _vm.configure(mode: value),
+                        child: const Text("Today")),
+                  ],
+                  child: Text(
+                    "Mode",
+                    style: Theme.of(context).textTheme.bodyLarge,
+                  ),
+                ),
+                MenuItemButton(
+                  onPressed: () => _vm.configure(showOverdue: !_vm.showOverdue),
+                  leadingIcon: Icon(_vm.showOverdue
+                      ? Icons.check_box_rounded
+                      : Icons.check_box_outline_blank_rounded),
+                  child: const Text("Show Overdue"),
+                ),
+                MenuItemButton(
+                  onPressed: () =>
+                      _vm.configure(showCompleted: !_vm.showCompleted),
+                  leadingIcon: Icon(_vm.showCompleted
+                      ? Icons.check_box_rounded
+                      : Icons.check_box_outline_blank_rounded),
+                  child: const Text("Show Completed"),
+                ),
+                MenuItemButton(
+                  child: const Text("Delete Completed"),
+                  onPressed: () {
+                    _vm.deleteCompletedTasks();
+                  },
+                ),
+              ],
+              onOpen: () {},
+              onClose: () {},
+              child: IconButton(
                 onPressed: () {
-                  if (controller.isOpen) {
-                    controller.close();
+                  if (_overflowController.isOpen) {
+                    _overflowController.close();
                   } else {
-                    controller.open();
+                    _overflowController.open();
                   }
                 },
                 icon: const Icon(Icons.more_vert),
                 tooltip: "Show menu",
-              );
-            },
-            menuChildren: [
-              MenuItemButton(
-                child: const Text("Delete Completed"),
-                onPressed: () {
-                  _vm.deleteCompletedTasks();
-                },
-              ),
-              MenuItemButton(
-                onPressed: () => _vm.setShowCompleted = !_vm.showCompleted,
-                leadingIcon: IconButton(
-                  icon: Icon(_vm.showCompleted
-                      ? Icons.check_box_rounded
-                      : Icons.check_box_outline_blank_rounded),
-                  onPressed: () => _vm.setShowCompleted = !_vm.showCompleted,
-                ),
-                child: const Text("Show Completed"),
-              )
-            ],
-            onOpen: () {},
-            onClose: () {},
-          )
+              ))
         ]);
   }
 
@@ -87,8 +115,7 @@ class TaskListView extends State<TaskList> {
         onRefresh: _vm.onRefresh,
         child: ListView(children: [
           buildOverdue(context),
-          buildToday(context),
-          buildUpcoming(context),
+          buildTasks(context),
           buildCompleted(context)
         ]));
   }
@@ -103,6 +130,9 @@ class TaskListView extends State<TaskList> {
 
   Widget buildOverdue(BuildContext context) {
     List<TaskModel> tasks = _vm.getOverdue();
+    if (!_vm.showOverdue || tasks.isEmpty) {
+      return const SizedBox.shrink();
+    }
     return ExpansionTile(
       title: Text(
         "Overdue",
@@ -114,92 +144,100 @@ class TaskListView extends State<TaskList> {
     );
   }
 
-  Widget buildToday(BuildContext context) {
-    List<TaskModel> tasks = _vm.getTasksByDay(DateTimeConverter.today());
-    return ListView(
+  Widget buildTasks(BuildContext context) {
+    DateTime tod = DateTimeConverter.today();
+    SplayTreeMap<DateTime, List<TaskModel>> tasks = _vm.getTasksMain();
+
+    if (_vm.mode == TaskListModes.today &&
+        tasks[tod] == null &&
+        _vm.getOverdue().isEmpty) {
+      return Column(
+        children: [
+          Text(
+              "${formatDate(DateTimeConverter.today())} ${getWeekday(DateTimeConverter.today())}"),
+          Text(
+            "Nothing left to do today",
+            style: Theme.of(context).textTheme.bodyLarge,
+          )
+        ],
+      );
+    }
+    List<DateTime> days = tasks.keys.toList();
+    return ListView.builder(
       shrinkWrap: true,
-      physics: const ClampingScrollPhysics(),
-      children: [
-        ListTile(
-          title: Text(
-            "Today",
-            style: Theme.of(context).textTheme.headlineSmall,
-          ),
-          trailing: IconButton(
-              onPressed: () => onAddTaskButton(day: DateTimeConverter.today()),
-              icon: const Icon(Icons.add)),
-        ),
-        ...tasks.map((e) => TaskListItemWidget(e, _vm))
-      ],
+      itemCount: days.length,
+      itemBuilder: (context, index) {
+        DateTime date = days[index];
+        if (tasks[date] == null) return const SizedBox.shrink();
+        List<TaskModel> daysTasks = tasks[date]!;
+
+        int dayComp = compareDates(date, tod);
+        String dateStr = formatDate(date);
+        String weekday = getWeekday(date);
+        String titleStr;
+        if (_vm.mode == TaskListModes.today) {
+          titleStr = "$dateStr $weekday";
+        } else if (dayComp == 0) {
+          titleStr = "$dateStr Today $weekday";
+        } else if (dayComp == 1) {
+          titleStr = "$dateStr Tomorrow $weekday";
+        } else {
+          titleStr = "$dateStr $weekday";
+        }
+        Text title = Text(
+          titleStr,
+          style: Theme.of(context).textTheme.headlineSmall,
+        );
+        Text subtitle;
+
+        if (tasks[date]!.isEmpty) {
+          subtitle = Text(
+            "Notasks due",
+            style: Theme.of(context).textTheme.bodyLarge,
+          );
+        } else if (tasks[date]!.length > 1) {
+          subtitle = Text(
+            "${tasks[date]!.length} tasks due",
+            style: Theme.of(context).textTheme.bodyLarge,
+          );
+        } else {
+          subtitle = Text(
+            "${tasks[date]!.length} task due",
+            style: Theme.of(context).textTheme.bodyLarge,
+          );
+        }
+        return Column(children: [
+          ListTile(
+              title: title,
+              subtitle: subtitle,
+              trailing: IconButton(
+                  onPressed: () => onAddTaskButton(day: date),
+                  icon: const Icon(Icons.add))),
+          ListView(
+            shrinkWrap: true,
+            physics: const ClampingScrollPhysics(),
+            children: [...daysTasks.map((e) => TaskListItemWidget(e, _vm))],
+          )
+        ]);
+      },
     );
   }
 
-  Widget buildUpcoming(BuildContext context) {
-    DateTime tod = DateTimeConverter.today();
-    DateTime tom = DateTime(tod.year, tod.month, tod.day + 1);
-    SplayTreeMap<DateTime, List<TaskModel>> tasks =
-        _vm.getTasksGroupedByDate(start: tom);
-    if (tasks.isEmpty) {
+  Widget buildCompleted(BuildContext context) {
+    if (!_vm.showCompleted) {
       return const SizedBox.shrink();
     }
-    return ExpansionTile(
-        title: Text(
-          "Upcoming",
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
-        controlAffinity: ListTileControlAffinity.leading,
-        initiallyExpanded: false,
-        children: [
-          ...tasks.keys.map((e) {
-            DateTime date = e;
-            List<TaskModel> tasksByDate = tasks[e]!;
-            String title;
-            int dayComp = compareDates(date, DateTimeConverter.today());
-            switch (dayComp) {
-              case 0:
-                title = "Today";
-                break;
-              case 1:
-                title = "Tomorrow";
-                break;
-              default:
-                title = "${formatDate(date)} ${getWeekday(date)}";
-                break;
-            }
-            return Column(children: [
-              ListTile(
-                  title: Text(
-                    "$title ${tasks[e]!.length}",
-                    style: Theme.of(context).textTheme.headlineSmall,
-                  ),
-                  trailing: IconButton(
-                      onPressed: () => onAddTaskButton(day: date),
-                      icon: const Icon(Icons.add))),
-              ListView(
-                shrinkWrap: true,
-                physics: const ClampingScrollPhysics(),
-                children: [...tasks[e]!.map((e) => TaskListItemWidget(e, _vm))],
-              )
-            ]);
-          })
-        ]);
-  }
-
-  Widget buildCompleted(BuildContext context) {
     List<Widget> tasks =
         _vm.getCompleted().map((e) => TaskListItemWidget(e, _vm)).toList();
-    if (_vm.showCompleted) {
-      return ExpansionTile(
-        title: Text(
-          "Completed",
-          style: Theme.of(context).textTheme.headlineMedium,
-        ),
-        controlAffinity: ListTileControlAffinity.leading,
-        initiallyExpanded: false,
-        children: [...tasks],
-      );
-    }
-    return const SizedBox.shrink();
+    return ExpansionTile(
+      title: Text(
+        "Completed",
+        style: Theme.of(context).textTheme.headlineMedium,
+      ),
+      controlAffinity: ListTileControlAffinity.leading,
+      initiallyExpanded: false,
+      children: [...tasks],
+    );
   }
 
   void onAddTaskButton({DateTime? day}) {
