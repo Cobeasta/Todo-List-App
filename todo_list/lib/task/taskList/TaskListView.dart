@@ -14,7 +14,7 @@ class TaskListView extends State<TaskList> {
 
   List<TaskModel> _overdue = [];
   List<TaskModel> _today = [];
-  List<TaskModel> _tomorrow = [];
+  final List<TaskModel> _tomorrow = [];
   Map<DateTime, List<TaskModel>> _upcoming = {};
   List<DateTime> _taskDays = [];
   List<TaskModel> _completed = [];
@@ -163,7 +163,7 @@ class TaskListView extends State<TaskList> {
                                   children: [
                                     ListTile(
                                       title: Text(
-                                        "${formatDate(tod)} \u2022 ${_vm.mode == TaskListModes.today ? "${getWeekday(tod)}" : "Today \u2022 ${getWeekday(tod)}"}",
+                                        "${formatDate(tod)} \u2022 ${_vm.mode == TaskListModes.today ? getWeekday(tod) : "Today \u2022 ${getWeekday(tod)}"}",
                                         style: Theme.of(context)
                                             .textTheme
                                             .bodyLarge,
