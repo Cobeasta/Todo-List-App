@@ -16,6 +16,7 @@ class DateTimeConverter extends TypeConverter<DateTime, int> {
     DateTime now = DateTime.now();
     return DateTime(now.year, now.month, now.day);
   }
+
   static DateTime tomorrow() {
     DateTime now = DateTime.now();
     return DateTime(now.year, now.month, now.day + 1);
@@ -50,6 +51,7 @@ class OptionalDateTimeConverter extends TypeConverter<DateTime?, int?> {
     return DateTime(now.year, now.month, now.day);
   }
 }
+
 
 String formatDate(DateTime dateTime) {
   String month = DateFormat.MMM().format(dateTime);
@@ -86,4 +88,14 @@ String getWeekday(DateTime dateTime) {
       break;
   }
   return dayStr;
+}
+
+int daysUntil(DateTime date) {
+  return compareDates(date, DateTimeConverter.today());
+}
+
+
+int compareDates(DateTime key1, DateTime key2) {
+  return int.parse("${key1.year}${key1.month}${key1.day}") -
+      int.parse("${key2.year}${key2.month}${key2.day}");
 }
