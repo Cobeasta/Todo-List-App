@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:todo_list/basic_widgets/TaskListCheckBox.dart';
 import 'package:todo_list/database/typeConverters/DateTimeConverter.dart';
-import 'package:todo_list/task/taskList/TaskListBase.dart';
 import 'package:todo_list/task/TaskModel.dart';
+import 'package:todo_list/task/taskList/TaskListVM.dart';
 
 import 'EditTaskModal.dart';
 import 'EditTaskVM.dart';
@@ -122,7 +122,7 @@ class EditTaskModalView extends State<EditTaskModal> {
 }
 
 Future<dynamic> openEditTaskModal(
-    TaskModel task, TaskListVMBase taskListVM, BuildContext context) {
+    TaskModel task, TaskListVM taskListVM, BuildContext context) {
   return showModalBottomSheet(
       context: context,
       isScrollControlled: true,
