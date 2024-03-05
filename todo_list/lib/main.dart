@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:todo_list/Settings.dart';
 import 'package:todo_list/database/tables/Task.dart';
 import 'package:todo_list/database/AppDatabase.dart';
 import 'package:todo_list/task/TaskRepository.dart';
@@ -14,6 +16,12 @@ void main() {
 }
 
 void registerSingletons() {
+  // shared prefs
+  getIt.registerSingletonAsync<Settings>(() async {
+    return Settings(await SharedPreferences.getInstance());
+  });
+
+  // database
   getIt.registerSingletonAsync(() async => $FloorAppDatabase
       .databaseBuilder(AppDatabase.databaseName).build());
 
