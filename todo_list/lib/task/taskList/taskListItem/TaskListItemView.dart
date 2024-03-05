@@ -23,7 +23,7 @@ class TaskItemView extends State<TaskListItemWidget> {
   Widget buildTitle(BuildContext context) {
     return Text(
       _vm.title,
-      style: Theme.of(context).textTheme.headlineSmall,
+      style: Theme.of(context).textTheme.bodyLarge,
     );
   }
 
