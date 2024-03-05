@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:todo_list/task/taskList/TaskListVM.dart';
 import 'package:todo_list/task/taskList/taskListItem/TaskListItemView.dart';
-import 'package:todo_list/task/taskList/TaskListBase.dart';
 import 'package:todo_list/task/TaskModel.dart';
 
 /// Entry state for task list item
 class TaskListItemWidget extends StatefulWidget {
   final TaskModel _model;
-  final TaskListVMBase _taskListVM;
+  final TaskListVM _taskListVM;
   final UniqueKey _key = UniqueKey();
 
 
@@ -17,7 +17,7 @@ class TaskListItemWidget extends StatefulWidget {
   State<StatefulWidget> createState() => TaskItemView();
 
   TaskModel get model => _model;
-  TaskListVMBase get taskListVM => _taskListVM;
+  TaskListVM get taskListVM => _taskListVM;
 
   @override
   UniqueKey get key => _key;

@@ -12,6 +12,8 @@ import 'package:todo_list/task/taskList/taskListItem/TaskListItem.dart';
 class TaskListView extends State<TaskList> {
   late TaskListVM _vm;
 
+  String get screenName => widget.screenName;
+
   bool get showCompleted => _vm.showCompleted;
 
   TaskListView();
@@ -19,7 +21,7 @@ class TaskListView extends State<TaskList> {
   @override
   void initState() {
     super.initState();
-    _vm = TaskListVM();
+    _vm = TaskListVM(screenName);
     _vm.getAllTasks();
   }
 
@@ -64,7 +66,7 @@ class TaskListView extends State<TaskList> {
                         value: TaskListModes.upcoming,
                         groupValue: _vm.mode,
                         onChanged: (value) => _vm.configure(mode: value),
-                        child: const Text("Today")),
+                        child: const Text("Upcoming")),
                   ],
                   child: Text(
                     "Mode",
@@ -113,11 +115,14 @@ class TaskListView extends State<TaskList> {
   Widget buildList(BuildContext context) {
     return RefreshIndicator(
         onRefresh: _vm.onRefresh,
-        child: ListView(shrinkWrap: true, physics: const ClampingScrollPhysics(), children: [
-          buildOverdue(context),
-          buildTasks(context),
-          buildCompleted(context)
-        ]));
+        child: ListView(
+            shrinkWrap: true,
+            physics: const ClampingScrollPhysics(),
+            children: [
+              buildOverdue(context),
+              ...buildMain(context),
+              buildCompleted(context)
+            ]));
   }
 
 // Build floating action button
@@ -144,84 +149,36 @@ class TaskListView extends State<TaskList> {
     );
   }
 
-  Widget buildTasks(BuildContext context) {
+  List<Widget> buildMain(BuildContext context) {
     DateTime tod = DateTimeConverter.today();
     SplayTreeMap<DateTime, List<TaskModel>> tasks = _vm.getTasksMain();
 
     if (_vm.mode == TaskListModes.today &&
         tasks[tod] == null &&
         _vm.getOverdue().isEmpty) {
-      return Column(
-        children: [
-          Text(
-              "${formatDate(DateTimeConverter.today())} ${getWeekday(DateTimeConverter.today())}"),
+      return  [
+          buildHeader(tod, null, context),
           Text(
             "Nothing left to do today",
             style: Theme.of(context).textTheme.bodyLarge,
           )
-        ],
-      );
+        ];
     }
     List<DateTime> days = tasks.keys.toList();
-    return ListView.builder(
-      shrinkWrap: true,
-      physics: const ClampingScrollPhysics(),
-      itemCount: days.length,
-      itemBuilder: (context, index) {
-        DateTime date = days[index];
-        if (tasks[date] == null) return const SizedBox.shrink();
-        List<TaskModel> daysTasks = tasks[date]!;
+    List<Widget> result = [];
+    for(DateTime date in days) {
+      if(tasks[date] == null) {
+        continue;
+      }
+      List<TaskModel> daysTasks = tasks[date]!;
 
-        int dayComp = compareDates(date, tod);
-        String dateStr = formatDate(date);
-        String weekday = getWeekday(date);
-        String titleStr;
-        if (_vm.mode == TaskListModes.today) {
-          titleStr = "$dateStr $weekday";
-        } else if (dayComp == 0) {
-          titleStr = "$dateStr Today $weekday";
-        } else if (dayComp == 1) {
-          titleStr = "$dateStr Tomorrow $weekday";
-        } else {
-          titleStr = "$dateStr $weekday";
-        }
-        Text title = Text(
-          titleStr,
-          style: Theme.of(context).textTheme.headlineSmall,
-        );
-        Text subtitle;
+      Widget header = buildHeader(date, tasks[date]!, context);
+      result.add(header);
+      result.addAll(daysTasks.map(
+              (e) => TaskListItemWidget(e, _vm)));
+    }
+    return result;
 
-        if (tasks[date]!.isEmpty) {
-          subtitle = Text(
-            "Notasks due",
-            style: Theme.of(context).textTheme.bodyLarge,
-          );
-        } else if (tasks[date]!.length > 1) {
-          subtitle = Text(
-            "${tasks[date]!.length} tasks due",
-            style: Theme.of(context).textTheme.bodyLarge,
-          );
-        } else {
-          subtitle = Text(
-            "${tasks[date]!.length} task due",
-            style: Theme.of(context).textTheme.bodyLarge,
-          );
-        }
-        return Column(children: [
-          ListTile(
-              title: title,
-              subtitle: subtitle,
-              trailing: IconButton(
-                  onPressed: () => onAddTaskButton(day: date),
-                  icon: const Icon(Icons.add))),
-          ListView(
-            shrinkWrap: true,
-            physics: const ClampingScrollPhysics(),
-            children: [...daysTasks.map((e) => TaskListItemWidget(e, _vm))],
-          )
-        ]);
-      },
-    );
   }
 
   Widget buildCompleted(BuildContext context) {
@@ -248,9 +205,54 @@ class TaskListView extends State<TaskList> {
     }
     openEditTaskModal(task, _vm, context).then(
       (value) {
-        value ?? _vm.addTask(value);
-        _vm.render();
+        if (value != null) {
+          _vm.addTask(value);
+        }
+        _vm.onModalClose();
       },
+    );
+  }
+
+  Widget buildHeader(DateTime date, List<TaskModel>? tasks, BuildContext context) {
+    int dayComp = compareDates(date, DateTimeConverter.today());
+    String dateStr = formatDate(date);
+    String weekday = getWeekday(date);
+    String titleStr;
+    if (_vm.mode == TaskListModes.today) {
+      titleStr = "$dateStr $weekday";
+    } else if (dayComp == 0) {
+      titleStr = "$dateStr Today $weekday";
+    } else if (dayComp == 1) {
+      titleStr = "$dateStr Tomorrow $weekday";
+    } else {
+      titleStr = "$dateStr $weekday";
+    }
+    Text title = Text(
+      titleStr,
+      style: Theme.of(context).textTheme.headlineSmall,
+    );
+    Text subtitle;
+
+
+    if (tasks == null || tasks.isEmpty) {
+      subtitle = Text(
+        "No tasks due",
+        style: Theme.of(context).textTheme.bodyLarge,
+      );
+    } else if (tasks.length > 1) {
+      subtitle = Text(
+        "${tasks.length} tasks due",
+        style: Theme.of(context).textTheme.bodyLarge,
+      );
+    } else {
+      subtitle = Text(
+        "${tasks.length} task due",
+        style: Theme.of(context).textTheme.bodyLarge,
+      );
+    }
+    return ListTile(
+      title: title,
+      subtitle: subtitle,
     );
   }
 }
