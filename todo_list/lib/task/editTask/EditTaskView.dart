@@ -112,7 +112,7 @@ class EditTaskModalView extends State<EditTaskModal> {
         context: context,
         initialDate: DateTimeConverter.today(),
         firstDate: DateTimeConverter.today(),
-        lastDate: DateTime(DateTime.timestamp().year + 5));
+        lastDate: DateTime(DateTime.timestamp().year + 5),);
     if (picked == null) {
       _viewmodel.updateDeadline(DateTimeConverter.today());
     } else {

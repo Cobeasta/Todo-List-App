@@ -1,23 +1,82 @@
 import 'dart:collection';
 
+import 'package:todo_list/database/typeConverters/DateTimeConverter.dart';
 import 'package:todo_list/task/taskList/TaskListBase.dart';
 import 'package:todo_list/task/TaskModel.dart';
 
+enum TaskListModes {
+  today(name: "Today"),
+  week(name: "Next 7 Days"),
+  upcoming(name: "Upcoming");
+  const TaskListModes(
+  {
+    required this.name
+});
+  final String name;
+}
+
 class TaskListVM extends TaskListVMBase {
-
-  bool loading = false;
+  // fields for configuration
+  bool _loading = false;
+  bool _showOverdue = true;
+  TaskListModes mode = TaskListModes.today;
   bool _showCompleted = false;
-  final List<TaskModel> _tasks = [];
 
-  set setShowCompleted(bool val) {
-    _showCompleted = val;
+  bool _groupByDate = true;
+
+  DateTime _start = DateTimeConverter.today();
+  DateTime? _end = DateTimeConverter.tomorrow();
+
+  // getters for view usage
+  bool get loading => _loading;
+
+  bool get showOverdue => _showOverdue;
+
+
+  bool get showCompleted => _showCompleted;
+
+  // functions used by view
+
+  void configure(
+      {bool? showOverdue,
+      TaskListModes? mode = TaskListModes.today,
+      bool? showCompleted}) {
+    _showOverdue = showOverdue ?? _showOverdue;
+    _showCompleted = showCompleted ?? _showCompleted;
+    if (mode != null) {
+      switch (mode) {
+        case TaskListModes.today:
+          _start = DateTimeConverter.today();
+          _end = DateTimeConverter.tomorrow();
+          this.mode = mode;
+          break;
+        case TaskListModes.week:
+          _start = DateTimeConverter.today();
+          _end = DateTime(_start.year, _start.month, _start.day + 8);
+          this.mode = mode;
+          break;
+        case TaskListModes.upcoming:
+          _start = DateTimeConverter.today();
+          _end = null;
+          this.mode = mode;
+          break;
+      }
+    }
     notifyListeners();
   }
-  bool get  showCompleted  => _showCompleted;
+
+  final List<TaskModel> _tasks = [];
 
   List<TaskModel> getOverdue() {
     // overdue tasks must not be complete
     return _tasks.where((e) => e.overdue && !e.isComplete).toSet().toList();
+  }
+
+  /**
+   * Return tasks as specified in listModes _mode field
+   */
+  SplayTreeMap<DateTime, List<TaskModel>> getTasksMain() {
+    return _getTasksGroupedByDate(start: _start, end: _end);
   }
 
   Set<TaskModel> getCompleted() {
@@ -56,12 +115,12 @@ class TaskListVM extends TaskListVMBase {
       init(getAllTasks);
       return;
     }
-    loading = true;
+    _loading = true;
     notifyListeners();
     _tasks.clear();
     List<TaskModel> tasks = await super.repository.listTasks();
     _tasks.addAll(tasks);
-    loading = false;
+    _loading = false;
     notifyListeners();
   }
 
@@ -87,17 +146,28 @@ class TaskListVM extends TaskListVMBase {
     notifyListeners();
   }
 
-  SplayTreeMap<DateTime, List<TaskModel>> getTasksGroupedByDate(
+  /**
+   * Get a SplayTreeMap<DateTime, list<taskModel>
+   *   Optional DateTime start  (inclusive)
+   *   optional DateTime end  (exclusive)
+   *
+   * Elements are grouped by date
+   */
+  SplayTreeMap<DateTime, List<TaskModel>> _getTasksGroupedByDate(
       {bool includeOverdue = false,
       bool includeCompleted = false,
-      DateTime? start}) {
+      DateTime? start,
+      DateTime? end}) {
     SplayTreeMap<DateTime, List<TaskModel>> groupedTasks =
         SplayTreeMap(compareDates);
 
     Set<TaskModel> filtered = _tasks.where((e) {
-      return (!e.overdue || includeOverdue) &&
-          (!e.isComplete || includeCompleted) &&
-          (start != null && e.deadline.isAfter(start) || start == null);
+      return ( !e.isComplete && !e.overdue &&
+          start != null &&
+                  (e.deadline.isAfter(start) ||
+                      e.deadline.isAtSameMomentAs(start)) ||
+              start == null) &&
+          (end != null && (e.deadline.isBefore(end)) || end == null);
     }).toSet();
     for (var element in filtered) {
       DateTime date = DateTime(
