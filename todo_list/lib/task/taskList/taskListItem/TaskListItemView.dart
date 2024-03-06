@@ -15,9 +15,7 @@ class TaskItemView extends State<TaskListItemWidget> {
   }
 
   Widget buildCheckbox(BuildContext context) {
-    return TaskListCheckBox(
-        _vm.isComplete,
-            (val) => _vm.onCheckToggle(val));
+    return TaskListCheckBox(_vm.isComplete, (val) => _vm.onCheckToggle(val));
   }
 
   Widget buildTitle(BuildContext context) {
@@ -47,7 +45,9 @@ class TaskItemView extends State<TaskListItemWidget> {
         builder: (context, tvm, child) {
           return Card(
             child: ListTile(
-              leading: buildCheckbox(context),
+              leading: widget.showCheckbox
+                  ? buildCheckbox(context)
+                  : null,
               title: buildTitle(context),
               subtitle: buildSubtitle(context),
               onTap: () => tvm.onTap(context),
