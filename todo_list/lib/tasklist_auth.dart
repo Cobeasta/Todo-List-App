@@ -5,25 +5,18 @@ import 'package:local_auth/local_auth.dart';
 import 'package:todo_list/amplifyconfiguration.dart';
 
  class TaskListAuthUtils {
-   static  final LocalAuthentication _localAuth = LocalAuthentication();
    static bool configured = false;
-   static  bool canCheckBiometrics = false;
    TaskListAuthUtils._();
 
 
    static void init() async {
-     canCheckBiometrics = await _localAuth.canCheckBiometrics;
      await configureAmplify();
      _fetchCurrentUserAttributes();
      configured = true;
    }
   static Future<void> configureAmplify() async {
     try {
-      final auth = AmplifyAuthCognito(
-        secureStorageFactory: AmplifySecureStorage.factoryFrom(
-
-        )
-      );
+      final auth = AmplifyAuthCognito();
       await Amplify.addPlugin(auth);
       await Amplify.configure(amplifyconfig);
     } on Exception catch (e) {

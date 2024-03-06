@@ -58,7 +58,6 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return Authenticator(
-      initialStep: AuthenticatorStep.signIn,
         child: MaterialApp(
           title: 'Flutter Demo',
           builder: Authenticator.builder(),
