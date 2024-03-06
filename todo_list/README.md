@@ -1,6 +1,6 @@
 # todo_list
 
-A new Flutter project.
+Task item tracker app
 
 ## Getting Started
 
