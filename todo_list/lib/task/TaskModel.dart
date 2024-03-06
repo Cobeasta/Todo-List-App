@@ -1,4 +1,4 @@
-import 'package:todo_list/database/tables/Task.dart';
+import 'package:todo_list/database/tables/task.dart';
 import 'package:todo_list/database/typeConverters/DateTimeConverter.dart';
 
 class TaskModel {
@@ -65,10 +65,6 @@ class TaskModel {
       _completedDate = (value == false) ? null : _completedDate;
     }
     // _isCompleted did change
-  }
-
-  Task getData() {
-    return Task(_id, _title, _description, _deadline, _completedDate);
   }
 
   @override

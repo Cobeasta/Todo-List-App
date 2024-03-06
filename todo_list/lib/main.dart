@@ -5,12 +5,14 @@ import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todo_list/Settings.dart';
-import 'package:todo_list/amplifyconfiguration.dart';
-import 'package:todo_list/database/tables/Task.dart';
+import 'package:todo_list/database/tables/task.dart';
 import 'package:todo_list/database/AppDatabase.dart';
-import 'package:todo_list/task/TaskRepository.dart';
+import 'package:todo_list/database/tables/user.dart';
+import 'package:todo_list/task/task_repository.dart';
 import 'package:todo_list/task/taskList/TaskList.dart';
 import 'package:todo_list/tasklist_auth.dart';
+
+import 'user_repository.dart';
 
 final getIt = GetIt.instance;
 
@@ -34,12 +36,28 @@ void registerSingletons() {
   getIt.registerSingletonAsync(() async => $FloorAppDatabase
       .databaseBuilder(AppDatabase.databaseName).build());
 
+
+  getIt.registerSingletonWithDependencies<UserDao>(() {
+    return getIt.get<AppDatabase>().userDao;
+  }, dependsOn: [AppDatabase]);
+
+  getIt.registerSingletonWithDependencies<UserRepository>(() {
+    return UserRepository(getIt.get<UserDao>());
+  }, dependsOn: [UserDao]);
+  // Auth singleton
+  getIt.registerSingletonWithDependencies<TaskListAuth>(() {
+    return TaskListAuth(getIt.get<UserRepository>());
+  }, dependsOn: [UserRepository]);
+
+
+  // Tasks
   getIt.registerSingletonWithDependencies<TaskDao>(() {
     return getIt.get<AppDatabase>().taskDao;
   }, dependsOn: [AppDatabase]);
+
   getIt.registerSingletonWithDependencies<TaskRepository>(
-      () => TaskRepository(),
-      dependsOn: [TaskDao]);
+      () => TaskRepository(getIt.get<TaskDao>(), getIt.get<TaskListAuth>()),
+      dependsOn: [TaskDao, TaskListAuth]);
 
   // view model for a task
 }
@@ -57,8 +75,7 @@ class _MyAppState extends State<MyApp> {
 
   @override
   Widget build(BuildContext context) {
-    return Authenticator(
-        child: MaterialApp(
+    return Authenticator(child: MaterialApp(
           title: 'Flutter Demo',
           builder: Authenticator.builder(),
           theme: ThemeData(
@@ -73,7 +90,7 @@ class _MyAppState extends State<MyApp> {
   @override
   void initState() {
     super.initState();
-    TaskListAuthUtils.init();
+    getIt.getAsync<TaskListAuth>().then((value) => value.init(),);
 
   }
 
