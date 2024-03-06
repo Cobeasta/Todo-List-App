@@ -1,5 +1,7 @@
 import 'dart:core';
 
+import 'package:amplify_authenticator/amplify_authenticator.dart';
+import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_list/database/typeConverters/DateTimeConverter.dart';
@@ -118,6 +120,7 @@ class TaskListView extends State<TaskList> {
                                 _vm.deleteCompletedTasks();
                               },
                             ),
+                            MenuItemButton(child: Text("LogOut"), onPressed: () => Amplify.Auth.signOut(),)
                           ],
                           onOpen: () {},
                           onClose: () {},
