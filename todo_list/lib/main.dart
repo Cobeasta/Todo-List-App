@@ -10,26 +10,21 @@ import 'package:todo_list/database/tables/Task.dart';
 import 'package:todo_list/database/AppDatabase.dart';
 import 'package:todo_list/task/TaskRepository.dart';
 import 'package:todo_list/task/taskList/TaskList.dart';
+import 'package:todo_list/tasklist_auth.dart';
 
 final getIt = GetIt.instance;
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
-  _configureAmplify();
   registerSingletons();
   runApp(const MyApp());
 }
 
-Future<void> _configureAmplify() async {
-  try {
-    final auth = AmplifyAuthCognito();
-    await Amplify.addPlugin(auth);
-    await Amplify.configure(amplifyconfig);
-  } on Exception catch (e) {
-    safePrint("An error occurred configuring Amplify: $e");
-  }
-}
+
 void registerSingletons() {
+  // auth
+
+
   // shared prefs
   getIt.registerSingletonAsync<Settings>(() async {
     return Settings(await SharedPreferences.getInstance());
@@ -63,8 +58,10 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return Authenticator(
+      initialStep: AuthenticatorStep.signIn,
         child: MaterialApp(
           title: 'Flutter Demo',
+          builder: Authenticator.builder(),
           theme: ThemeData(
             colorScheme: ColorScheme.fromSeed(seedColor: Colors.white10,
                 brightness: Brightness.dark),
@@ -72,6 +69,14 @@ class _MyAppState extends State<MyApp> {
           ),
           home: const TaskList(),
         ));
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    TaskListAuthUtils.init();
 
   }
+
+
 }
