@@ -1,4 +1,4 @@
-package com.coby.todo_list;
+package com.konkol.todo_list;
 
 import io.flutter.embedding.android.FlutterActivity;
 
