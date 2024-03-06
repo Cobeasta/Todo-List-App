@@ -8,7 +8,7 @@
 PRODUCT_NAME = todo_list
 
 // The application's bundle identifier
-PRODUCT_BUNDLE_IDENTIFIER = com.coby.todoList
+PRODUCT_BUNDLE_IDENTIFIER = com.konkol.todoList
 
 // The copyright displayed in application information
-PRODUCT_COPYRIGHT = Copyright © 2024 com.coby. All rights reserved.
+PRODUCT_COPYRIGHT = Copyright © 2024 com.konkol. All rights reserved.
