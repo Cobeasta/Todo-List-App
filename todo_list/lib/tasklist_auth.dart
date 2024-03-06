@@ -14,6 +14,7 @@ import 'package:todo_list/amplifyconfiguration.dart';
    static void init() async {
      canCheckBiometrics = await _localAuth.canCheckBiometrics;
      await configureAmplify();
+     _fetchCurrentUserAttributes();
      configured = true;
    }
   static Future<void> configureAmplify() async {
@@ -31,8 +32,8 @@ import 'package:todo_list/amplifyconfiguration.dart';
   }
 
   static Future<bool> isUserSignedIn() async {
-    final result = await Amplify.Auth.fetchAuthSession();
-    return result.isSignedIn;
+    final session = await _fetchCognitoAuthSession();
+    return session?.isSignedIn ?? false;
   }
   static Future<void> signOutCurrentUser() async {
     final result = await Amplify.Auth.signOut();
@@ -42,4 +43,24 @@ import 'package:todo_list/amplifyconfiguration.dart';
       safePrint('Error signing user out: ${result.exception.message}');
     }
   }
+   static Future<CognitoAuthSession?> _fetchCognitoAuthSession() async {
+     try {
+       final cognitoPlugin = Amplify.Auth.getPlugin(AmplifyAuthCognito.pluginKey);
+       var result =   await cognitoPlugin.fetchAuthSession();
+       return result;
+     } on AuthException catch (e) {
+       safePrint('Error retrieving auth session: ${e.message}');
+       return null;
+     }
+   }
+   static Future<void> _fetchCurrentUserAttributes() async {
+     try {
+       final result = await Amplify.Auth.fetchUserAttributes();
+       for (final element in result) {
+         safePrint('key: ${element.userAttributeKey}; value: ${element.value}');
+       }
+     } on AuthException catch (e) {
+       safePrint('Error fetching user attributes: ${e.message}');
+     }
+   }
 }
