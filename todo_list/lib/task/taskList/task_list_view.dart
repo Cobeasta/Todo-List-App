@@ -3,15 +3,18 @@ import 'dart:core';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:todo_list/di.dart';
 import 'package:todo_list/database/typeConverters/DateTimeConverter.dart';
 import 'package:todo_list/task/TaskModel.dart';
 import 'package:todo_list/task/editTask/EditTaskView.dart';
 import 'package:todo_list/task/taskList/TaskList.dart';
 import 'package:todo_list/task/taskList/TaskListVM.dart';
 import 'package:todo_list/task/taskList/taskListItem/TaskListItem.dart';
+import 'package:injectable/injectable.dart';
 
 class TaskListView extends State<TaskList> {
   late TaskListVM _vm;
+  bool _initialized = false;
 
   String get screenName => widget.screenName;
 
@@ -29,14 +32,20 @@ class TaskListView extends State<TaskList> {
   @override
   void initState() {
     super.initState();
-    _vm = TaskListVM(screenName);
-    _vm.getAllTasks();
+    getIt.getAsync<TaskListVM>().then((value) {
+      _vm = value;
+      _vm.getAllTasks();
+      _initialized = true;
+    });
+
   }
 
   @override
   Widget build(BuildContext context) {
+    if(!_initialized) {
+      return const SizedBox.shrink();
+    }
     DateTime tod = DateTimeConverter.today();
-
     return ChangeNotifierProvider(
         create: (_) => _vm,
         child: Consumer<TaskListVM>(
@@ -268,8 +277,11 @@ class TaskListView extends State<TaskList> {
                                       ListTileControlAffinity.leading,
                                   initiallyExpanded: false,
                                   children: [
-                                    ...completed
-                                        .map((e) => TaskListItemWidget(e, vm, showCheckbox: false,))
+                                    ...completed.map((e) => TaskListItemWidget(
+                                          e,
+                                          vm,
+                                          showCheckbox: false,
+                                        ))
                                   ],
                                 )
                               : const SizedBox.shrink()

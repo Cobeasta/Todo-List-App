@@ -3,10 +3,12 @@ import 'dart:async';
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/services.dart';
+import 'package:injectable/injectable.dart';
 import 'package:todo_list/amplifyconfiguration.dart';
 
 import 'user_repository.dart';
 
+@singleton
 class TaskListAuth {
   final UserRepository _userRepository;
   late StreamSubscription<AuthHubEvent> subscription;

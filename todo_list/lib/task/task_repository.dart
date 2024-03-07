@@ -1,15 +1,14 @@
+import 'package:injectable/injectable.dart';
 import 'package:todo_list/database/tables/task.dart';
-import 'package:todo_list/main.dart';
 import 'package:todo_list/task/TaskModel.dart';
 import 'package:todo_list/tasklist_auth.dart';
 
+@singleton
 class TaskRepository {
-   TaskDao _taskDao;
-   TaskListAuth _auth;
+   final TaskDao _taskDao;
+   final TaskListAuth _auth;
 
-  TaskRepository(this._taskDao, this._auth) {
-    _taskDao = getIt.get<TaskDao>();
-  }
+  TaskRepository(this._taskDao, this._auth);
 
   Future<List<TaskModel>> listTasks() async {
     List<Task> tasks = await _taskDao.list(_auth.localUserId);

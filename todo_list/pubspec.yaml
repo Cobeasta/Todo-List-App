@@ -40,6 +40,7 @@ dependencies:
   path: ^1.9.0
   provider: ^6.1.2
   shared_preferences: ^2.2.2
+  injectable: ^2.3.2
   sqflite: ^2.3.2
 
 
@@ -52,10 +53,9 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   floor_generator: ^1.4.2
-  build_runner: ^2.4.8
   analyzer: ^5.0.0
-
-
+  injectable_generator: ^2.4.2
+  build_runner: ^2.4.8
 
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is

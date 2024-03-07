@@ -4,6 +4,8 @@ import 'package:flutter/material.dart';
 import 'package:todo_list/Settings.dart';
 import 'package:todo_list/database/typeConverters/DateTimeConverter.dart';
 import 'package:todo_list/main.dart';
+import 'package:injectable/injectable.dart';
+
 import 'package:todo_list/task/task_repository.dart';
 import 'package:todo_list/task/TaskModel.dart';
 
@@ -32,13 +34,12 @@ enum TaskListModes {
   final int value;
 }
 
+@injectable
 class TaskListVM extends ChangeNotifier {
-  final String _screenName;
 
   // State
   bool _loading = false;
   final List<TaskModel> _tasks = [];
-  bool _initialized = false;
 
   // Configuration
 
@@ -66,17 +67,12 @@ class TaskListVM extends ChangeNotifier {
   bool get showCompleted => _showCompleted;
 
   // Dependencies
-  late TaskRepository _repository;
-  late Settings _settings;
+   final TaskRepository _repository;
+   final Settings _settings;
 
-  TaskListVM(this._screenName);
+  TaskListVM(this._repository, this._settings);
 
   void _initAsync(void Function() callback) async {
-    var repoTask = getIt.getAsync<TaskRepository>();
-    var settingsTask = getIt.getAsync<Settings>();
-    _repository = await repoTask;
-    _settings = await settingsTask;
-    _initialized = true;
     _getSettings();
     callback();
   }
@@ -125,18 +121,12 @@ class TaskListVM extends ChangeNotifier {
   }
 
   Future<void> onRefresh() async {
-    if (!_initialized) {
-      _initAsync(onRefresh);
-      return;
-    }
+
     getAllTasks();
   }
 
   void getAllTasks() async {
-    if (!_initialized) {
-      _initAsync(getAllTasks);
-      return;
-    }
+
     _loading = true;
     notifyListeners();
     _tasks.clear();
@@ -149,9 +139,7 @@ class TaskListVM extends ChangeNotifier {
 // Task list implementations
 
   void removeTask(TaskModel model) {
-    if (!_initialized) {
-      _initAsync(() => removeTask(model));
-    }
+
     _tasks.removeWhere((element) => element.id == model.id);
   }
 

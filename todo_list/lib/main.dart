@@ -1,28 +1,31 @@
+import 'dart:async';
+
 import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
 import 'package:amplify_authenticator/amplify_authenticator.dart';
 import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:get_it/get_it.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:todo_list/Settings.dart';
-import 'package:todo_list/database/tables/task.dart';
-import 'package:todo_list/database/AppDatabase.dart';
-import 'package:todo_list/database/tables/user.dart';
+import 'package:todo_list/di.dart';
 import 'package:todo_list/task/task_repository.dart';
 import 'package:todo_list/task/taskList/TaskList.dart';
 import 'package:todo_list/tasklist_auth.dart';
 
 import 'user_repository.dart';
 
-final getIt = GetIt.instance;
 
-void main() {
-  WidgetsFlutterBinding.ensureInitialized();
-  registerSingletons();
-  runApp(const MyApp());
+Future<void> main() async{
+
+  return runZonedGuarded(() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    await configureDependencies();
+    runApp(const MyApp());
+  }, (error, stack) {
+    safePrint(stack);
+    safePrint(error);
+  });
+
 }
 
-
+/*
 void registerSingletons() {
   // auth
 
@@ -60,7 +63,7 @@ void registerSingletons() {
       dependsOn: [TaskDao, TaskListAuth]);
 
   // view model for a task
-}
+}*/
 
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
