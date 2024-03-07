@@ -1,11 +1,13 @@
 
 
 
+import 'package:injectable/injectable.dart';
 import 'package:todo_list/database/tables/user.dart';
 import 'package:todo_list/main.dart';
 
+@singleton
 class UserRepository {
-  late UserDao _userDao;
+  final UserDao _userDao;
 
   UserRepository(this._userDao);
 

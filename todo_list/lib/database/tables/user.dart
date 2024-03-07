@@ -1,11 +1,12 @@
 import 'package:floor/floor.dart';
+import 'package:injectable/injectable.dart';
+import 'package:todo_list/database/AppDatabase.dart';
 import 'package:todo_list/database/typeConverters/DateTimeConverter.dart';
 
 /// Classes/data for relational representation of a task, accessing tasks in database
 @Entity(tableName: User.tableName)
 class User {
-  User(
-      this.id, this.userId, this.userName);
+  User(this.id, this.userId, this.userName);
 
   @ignore
   static const tableName = "user";
@@ -16,12 +17,12 @@ class User {
   final String userId;
   final String userName;
 
-  User.create(this.userId, this.userName)
-      : id = null;
+  User.create(this.userId, this.userName) : id = null;
 }
 
 @dao
 abstract class UserDao {
+
 
   @Query("SELECT * FROM ${User.tableName} WHERE userId = :userId")
   Future<User?> getByUserId(String userId);
@@ -31,5 +32,4 @@ abstract class UserDao {
 
   @insert
   Future<void> insertUser(User user);
-
 }

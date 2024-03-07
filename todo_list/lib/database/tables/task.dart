@@ -1,4 +1,6 @@
 import 'package:floor/floor.dart';
+import 'package:injectable/injectable.dart';
+import 'package:todo_list/database/AppDatabase.dart';
 import 'package:todo_list/database/tables/user.dart';
 import 'package:todo_list/database/tables/user_protected_table.dart';
 import 'package:todo_list/database/typeConverters/DateTimeConverter.dart';
@@ -35,9 +37,10 @@ class Task extends UserProtectedTableBase{
         deadline = DateTimeConverter.today(),
         completedDate = null;
 }
-
 @dao
 abstract class TaskDao {
+
+
   @Query('SELECT * FROM ${Task.tableName} WHERE ${UserProtectedTableBase.userTableFilter}')
   Future<List<Task>> list(int uid);
 
