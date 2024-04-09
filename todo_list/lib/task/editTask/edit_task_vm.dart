@@ -69,9 +69,6 @@ class EditTaskVM extends ChangeNotifier {
   }
 
   void delete(BuildContext context) {
-    if(_taskModel.id != null) {
-      _repository.deleteTask(_taskModel.id);
-    }
     _taskListVM.removeTask(_taskModel);
     Navigator.pop(context);
   }
@@ -79,7 +76,7 @@ class EditTaskVM extends ChangeNotifier {
   void submit(BuildContext context) {
     if (_taskModel.id == null) {
       _repository.insertTask(_taskModel);
-      _taskListVM.addTask(_taskModel);
+      _taskListVM.editTaskModalSubmit(_taskModel);
     } else {
       _repository.updateTask(_taskModel);
     }

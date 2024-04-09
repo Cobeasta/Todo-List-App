@@ -44,9 +44,23 @@ class Settings {
 
   // Setters
 
-  set taskListShowOverdue(bool value) {
-    prefs.setBool("TaskListShowOverdue", value);
-    _taskListShowOverdue = value;
+  toggleShowOverdue(bool? value) {
+    if(value == null) {
+      _taskListShowOverdue = !taskListShowOverdue;
+    }
+    else {
+      _taskListShowOverdue = value;
+    }
+    prefs.setBool("TaskListShowOverdue", _taskListShowOverdue!);
+  }
+  toggleShowComplete(bool? value) {
+    if(value == null) {
+      _taskListShowCompleted = !taskListShowCompleted;
+    }
+    else {
+      _taskListShowCompleted = value;
+    }
+    prefs.setBool("TaskListShowOverdue", _taskListShowCompleted!);
   }
 
   set taskListMode(TaskListModes mode) {
@@ -54,8 +68,4 @@ class Settings {
     _taskListMode = mode.value;
   }
 
-  set taskListShowCompleted(bool value) {
-    prefs.setBool("TaskListShowCompleted", value);
-    _taskListShowCompleted = value;
-  }
 }

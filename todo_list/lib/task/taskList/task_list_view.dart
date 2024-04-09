@@ -1,13 +1,15 @@
+import 'dart:collection';
 import 'dart:core';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
+import 'package:path/path.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_list/date_utils.dart';
 import 'package:todo_list/task/task_model.dart';
 import 'package:todo_list/task/editTask/edit_task_view.dart';
-import 'package:todo_list/task/taskList/TaskList.dart';
+import 'package:todo_list/task/taskList/task_list.dart';
 import 'package:todo_list/task/taskList/task_list_vm.dart';
 import 'package:todo_list/task/taskList/taskListItem/task_list_item.dart';
 
@@ -18,12 +20,6 @@ class TaskListView extends State<TaskList> {
 
   // main components of screen
   final MenuController _overflowController = MenuController();
-  static const div = Divider(
-    height: 5,
-    thickness: 5,
-    indent: 0,
-    endIndent: 0,
-  );
 
   TaskListView();
 
@@ -67,9 +63,7 @@ class TaskListView extends State<TaskList> {
         ));
   }
 
-  /**
-   * Build overflow menu for appbar. Includes configurations for list view.
-   */
+  /// Build overflow menu for appbar. Includes configurations for list view.
   Widget buildOverflow(BuildContext context, TaskListVM vm) {
     return MenuAnchor(
         controller: _overflowController,
@@ -85,12 +79,13 @@ class TaskListView extends State<TaskList> {
               RadioMenuButton(
                   value: TaskListModes.week,
                   groupValue: vm.mode,
-                  onChanged: (value) => vm.selectViewMode(TaskListModes.today),
+                  onChanged: (value) => vm.selectViewMode(TaskListModes.week),
                   child: const Text("Next 7 Days")),
               RadioMenuButton(
                   value: TaskListModes.upcoming,
                   groupValue: vm.mode,
-                  onChanged: (value) => vm.selectViewMode(TaskListModes.today),
+                  onChanged: (value) =>
+                      vm.selectViewMode(TaskListModes.upcoming),
                   child: const Text("Upcoming")),
             ],
             child: Text(
@@ -99,14 +94,14 @@ class TaskListView extends State<TaskList> {
             ),
           ), // TaskList mode select
           MenuItemButton(
-            onPressed: () => vm.configure(showOverdue: !vm.showOverdue),
+            onPressed: () => vm.toggleShowOverdue(!vm.showOverdue),
             leadingIcon: Icon(vm.showOverdue
                 ? Icons.check_box_rounded
                 : Icons.check_box_outline_blank_rounded),
             child: const Text("Show Overdue"),
           ), // Toggle showing overdue tasks
           MenuItemButton(
-            onPressed: () => vm.configure(showCompleted: !vm.showCompleted),
+            onPressed: () => vm.toggleShowCompleted(!vm.showCompleted),
             leadingIcon: Icon(vm.showCompleted
                 ? Icons.check_box_rounded
                 : Icons.check_box_outline_blank_rounded),
@@ -115,7 +110,7 @@ class TaskListView extends State<TaskList> {
           MenuItemButton(
             child: const Text("Delete Completed"),
             onPressed: () {
-              vm.deleteCompletedTasks();
+              vm.removeAllCompleted();
             },
           ), // Action delete all completed tasks
         ],
@@ -134,10 +129,8 @@ class TaskListView extends State<TaskList> {
         ));
   }
 
-  /**
-   * Build main body. Top level activities like refreshing, loading,
-   * and building the whole list
-   */
+  /// Build main body. Top level activities like refreshing, loading,
+  /// and building the whole list
   Widget buildBody(BuildContext context, TaskListVM vm) {
     if (!vm.repositoryInitialized || vm.loading) {
       return Stack(alignment: Alignment.topCenter, children: [
@@ -160,17 +153,15 @@ class TaskListView extends State<TaskList> {
             ]));
   }
 
-  /**
-   * Build widget for all overdue tasks. If set to hide overdue tasks,
-   * sizedbox.shrink is used.
-   */
+  /// Build widget for all overdue tasks. If set to hide overdue tasks,
+  /// sized box.shrink is used.
   Widget buildOverdue(BuildContext context, TaskListVM vm) {
-    List<TaskModel> overdue = [];
+    Set<TaskModel> overdue = SplayTreeSet<TaskModel>();
 
     if (vm.showOverdue) {
       return const SizedBox.shrink();
     }
-    overdue = vm.getOverdue();
+    overdue = vm.tasksOverdue;
 
     return overdue.isNotEmpty
         ? ExpansionTile(
@@ -186,11 +177,9 @@ class TaskListView extends State<TaskList> {
         : const SizedBox.shrink();
   }
 
-  /**
-   * Build today's tasks as a listview.
-   */
+  /// Build today's tasks as a listview.
   Widget buildToday(BuildContext context, TaskListVM vm) {
-    List<TaskModel> tasks = vm.getToday();
+    Set<TaskModel> tasks = vm.tasksDueToday;
     DateTime tod = TaskListDateUtils.today();
 
     return tasks.isNotEmpty
@@ -215,9 +204,7 @@ class TaskListView extends State<TaskList> {
             : const SizedBox.shrink();
   }
 
-  /**
-   * Build upcoming tasks widgets as a listview.
-   */
+  /// Build upcoming tasks widgets as a listview.
   Widget buildUpcoming(BuildContext context, TaskListVM vm) {
     Map<DateTime, List<TaskModel>> upcoming = {};
     List<DateTime> taskDays = [];
@@ -226,7 +213,7 @@ class TaskListView extends State<TaskList> {
       return const SizedBox.shrink();
     }
 
-    upcoming = vm.getUpcoming();
+    upcoming = vm.tasksUpcoming;
     taskDays = upcoming.keys.toList();
 
     return upcoming.isNotEmpty
@@ -235,57 +222,42 @@ class TaskListView extends State<TaskList> {
             shrinkWrap: true,
             itemCount: taskDays.length,
             itemBuilder: (context, index) {
-              DateTime date = taskDays[index];
-              List<TaskModel> dayTasks = upcoming[date]!;
+              // build sublist  for each day
 
+              DateTime date = taskDays[index]; // date for sublist
+              List<TaskModel> dayTasks = upcoming[date]!; // daily tasks
+
+              //  Building header
               String dateStr = TaskListDateUtils.formatDate(date);
               String weekday = TaskListDateUtils.getWeekday(date);
               int relativeDay = TaskListDateUtils.daysUntil(date);
 
-              String titleStr;
-              if (relativeDay == 1) {
-                titleStr = "$dateStr \u2022 Tomorrow \u2022 $weekday";
-              } else {
-                titleStr = "$dateStr \u2022  $weekday";
+              String title = (relativeDay == 1)
+                  ? "$dateStr \u2022 Tom \u2022 $weekday"
+                  : "$dateStr \u2022  $weekday";
+
+              Text? subtitle;
+              if (dayTasks.isNotEmpty) {
+                Text subtitle =Text( dayTasks.length == 1
+                    ? "1 task due"
+                    : "${dayTasks.length} tasks due",
+                style: Theme.of(context).textTheme.bodyMedium,);
               }
 
-              String subtitle = "${upcoming.length} tasks due";
+              Header header = Header(
+                title: Text(
+                  title,
+                  style: Theme.of(context).textTheme.headlineSmall,
+                ),
+                subTitle: subtitle ?? const SizedBox.shrink()
+              );
 
-              if (upcoming.isEmpty) {
-                subtitle = "No tasks due";
-              } else if (upcoming.length == 1) {
-                subtitle = "${upcoming.length} task due";
-              }
               return ListView(
                 physics: const ClampingScrollPhysics(),
                 shrinkWrap: true,
                 children: [
-                  ListTile(
-                    title: Text(
-                      titleStr,
-                      style: Theme.of(context).textTheme.bodyLarge,
-                    ),
-                    subtitle: Text(
-                      subtitle,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    trailing: IconButton(
-                        onPressed: () {
-                          TaskModel model = TaskModel.createEmpty();
-                          model.updateDeadline(date);
-                          openEditTaskModal(model, vm, context).then(
-                            (value) {
-                              if (value != null) {
-                                vm.addTask(value);
-                              }
-                              vm.onModalClose();
-                            },
-                          );
-                        },
-                        icon: const Icon(Icons.add)),
-                  ),
+                  header,
                   ...dayTasks.map((e) => TaskListItemWidget(e, vm)),
-                  div,
                 ],
               );
             },
@@ -294,15 +266,12 @@ class TaskListView extends State<TaskList> {
   }
 
   Widget buildCompleted(BuildContext context, TaskListVM vm) {
-    List<TaskModel> completed = [];
+    Set<TaskModel> completed = <TaskModel>{};
 
     if (!vm.showCompleted) {
       return const SizedBox.shrink();
     }
-    completed = vm.getComplete();
-    completed.sort(
-      (a, b) => TaskListDateUtils.compareDates(a.deadline, b.deadline),
-    );
+    completed = vm.tasksCompleted;
 
     return vm.showCompleted && completed.isNotEmpty
         ? ExpansionTile(
@@ -330,7 +299,7 @@ class TaskListView extends State<TaskList> {
         openEditTaskModal(task, vm, context).then(
           (value) {
             if (value != null) {
-              vm.addTask(value);
+              vm.editTaskModalSubmit(value);
             }
             vm.onModalClose();
           },
@@ -340,3 +309,88 @@ class TaskListView extends State<TaskList> {
     );
   }
 }
+
+// Custom list tile definition
+class Header extends StatelessWidget {
+  final Widget? leading; // Optional leading widget
+  final Text? title; // Required title text
+  final Widget? subTitle; // Optional subtitle text
+  final Function? onTap; // Optional tap event handler
+  final Function? onLongPress; // Optional long press event handler
+  final Function? onDoubleTap; // Optional double tap event handler
+  final Widget? trailing; // Optional trailing widget
+  final Color? tileColor; // Optional tile background color
+
+  // Constructor for the custom list tile
+  const Header({
+    super.key,
+    this.leading,
+    this.title,
+    this.subTitle,
+    this.onTap,
+    this.onLongPress,
+    this.onDoubleTap,
+    this.trailing,
+    this.tileColor, // Make height required for clarity
+  });
+
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      // Material design container for the list tile
+      color: tileColor, // Set background color if provided
+      elevation: 2.0,
+      child: InkWell(
+        // Tappable area with event handlers
+        onTap: () => onTap, // Tap event handler
+        onDoubleTap: () => onDoubleTap, // Double tap event handler
+        onLongPress: () => onLongPress, // Long press event handler
+        child: Wrap(
+            // Constrain the size of the list tile
+            children: [
+              Column(children: [
+                div,
+                Row(
+                  // Row layout for list item content
+                  children: [
+                    Padding(
+                      // Padding for the leading widget
+                      padding: const EdgeInsets.only(left: 12.0, right: 12.0),
+                      child: leading, // Display leading widget
+                    ),
+                    Expanded(
+                      // Expanded section for title and subtitle
+                      child: Column(
+                        // Column layout for title and subtitle
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        // Align text left
+                        children: [
+                          title ?? const SizedBox(),
+                          // Spacing between title and subtitle
+                          subTitle ?? const SizedBox(),
+                          // Display subtitle or empty space
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      // Padding for the trailing widget
+                      padding: const EdgeInsets.all(12.0),
+                      child: trailing, // Display trailing widget
+                    )
+                  ],
+                ),
+                div
+              ])
+            ]),
+      ),
+    );
+  }
+}
+
+const div = Divider(
+  height: 1,
+  thickness: 1,
+  indent: 0,
+  endIndent: 0,
+);

@@ -1,7 +1,7 @@
 import 'package:todo_list/database/tables/task.dart';
 import 'package:todo_list/date_utils.dart';
 
-class TaskModel {
+class TaskModel implements Comparable<TaskModel> {
   TaskModel(Task task)
       : _id = task.id,
         _title = task.title,
@@ -32,6 +32,8 @@ class TaskModel {
 
   bool get overdue =>
       _deadline.isBefore(TaskListDateUtils.today()) && !isComplete;
+
+  bool get dueToday => !isComplete && TaskListDateUtils.isToday(deadline);
 
   DateTime get deadline => _deadline;
 
@@ -70,11 +72,17 @@ class TaskModel {
   @override
   bool operator ==(Object other) {
     if (other is TaskModel) {
-        return _id == other.id;
+      return _id == other.id;
     }
     return false;
   }
 
   @override
   int get hashCode => _id.hashCode;
+
+  @override
+  int compareTo(other) {
+      return deadline.millisecondsSinceEpoch -
+          other.deadline.millisecondsSinceEpoch;
+  }
 }

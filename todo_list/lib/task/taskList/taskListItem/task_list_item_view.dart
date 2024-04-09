@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:todo_list/basic_widgets/TaskListCheckBox.dart';
+import 'package:todo_list/basic_widgets/task_list_checkbox.dart';
 import 'package:todo_list/date_utils.dart';
 import 'package:todo_list/task/TaskList/taskListItem/task_list_item_vm.dart';
 import 'package:todo_list/task/taskList/taskListItem/task_list_item.dart';

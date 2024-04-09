@@ -3,12 +3,12 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get_it/get_it.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:todo_list/database/AppDatabase.dart';
+import 'package:todo_list/database/app_database.dart';
 import 'package:todo_list/database/tables/task.dart';
-import 'package:todo_list/task/taskList/TaskList.dart';
+import 'package:todo_list/task/taskList/task_list.dart';
 import 'package:todo_list/task/task_repository.dart';
 
-import 'Settings.dart';
+import 'settings.dart';
 
 final getIt = GetIt.instance;
 

@@ -1,9 +1,20 @@
 import 'package:intl/intl.dart';
 
 class TaskListDateUtils {
+  static final comparisonDateFormat = DateFormat("yyyymmdd");
   static DateTime today() {
     DateTime now = DateTime.now();
     return DateTime(now.year, now.month, now.day);
+  }
+
+  static bool isToday(DateTime date) {
+    return compareDates(date, today()) == 0;
+  }
+  static bool isBefore(DateTime date, DateTime end) {
+    return compareDates(date, end) < 0;
+  }
+  static bool isAfterInclusive(DateTime date, DateTime start) {
+    return compareDates(date, start) >= 0;
   }
 
   static DateTime tomorrow() {
@@ -58,7 +69,8 @@ class TaskListDateUtils {
   }
 
   static int compareDates(DateTime key1, DateTime key2) {
-    return int.parse("${key1.year}${key1.month}${key1.day}") -
-        int.parse("${key2.year}${key2.month}${key2.day}");
+    int key1I = int.parse(comparisonDateFormat.format(key1));
+    int key2I = int.parse(comparisonDateFormat.format(key2));
+    return key1I - key2I;
   }
 }
