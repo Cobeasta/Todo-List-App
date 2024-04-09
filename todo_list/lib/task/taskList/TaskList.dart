@@ -1,7 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:todo_list/task/taskList/TaskListVM.dart';
 import 'package:todo_list/task/taskList/task_list_view.dart';
-import 'package:injectable/injectable.dart';
 
 
 class TaskList extends StatefulWidget {

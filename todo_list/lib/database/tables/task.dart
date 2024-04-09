@@ -1,7 +1,5 @@
 import 'package:floor/floor.dart';
-import 'package:todo_list/database/AppDatabase.dart';
 import 'package:todo_list/database/typeConverters/DateTimeConverter.dart';
-import 'package:todo_list/task/TaskModel.dart';
 
 /// Classes/data for relational representation of a task, accessing tasks in database
 @Entity(tableName: Task.tableName)
@@ -35,7 +33,7 @@ class Task{
 abstract class TaskDao {
 
 
-  @Query('SELECT * FROM ${Task.tableName}}')
+  @Query("SELECT * FROM ${Task.tableName}")
   Future<List<Task>> list();
 
   @Query("SELECT * FROM ${Task.tableName} WHERE title = :title")

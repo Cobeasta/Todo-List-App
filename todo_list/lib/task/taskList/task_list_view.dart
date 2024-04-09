@@ -9,7 +9,6 @@ import 'package:todo_list/task/editTask/EditTaskView.dart';
 import 'package:todo_list/task/taskList/TaskList.dart';
 import 'package:todo_list/task/taskList/TaskListVM.dart';
 import 'package:todo_list/task/taskList/taskListItem/TaskListItem.dart';
-import 'package:injectable/injectable.dart';
 
 class TaskListView extends State<TaskList> {
   late TaskListVM _vm;
@@ -68,6 +67,7 @@ class TaskListView extends State<TaskList> {
               upcoming = vm.getUpcoming();
               taskDays = upcoming.keys.toList();
             }
+
             return Scaffold(
                 appBar: AppBar(
                     backgroundColor:
@@ -144,7 +144,7 @@ class TaskListView extends State<TaskList> {
                     onRefresh: vm.onRefresh,
                     child: ListView(
                         shrinkWrap: false,
-                        physics: const ClampingScrollPhysics(),
+                        physics: const AlwaysScrollableScrollPhysics(),
                         children: [
                           // Widget for Overdue tasks
                           vm.showOverdue && overdue.isNotEmpty
@@ -160,7 +160,7 @@ class TaskListView extends State<TaskList> {
                                   children: [
                                       ...overdue
                                           .map((e) => TaskListItemWidget(e, vm))
-                                    ])
+                                    ]) //overdue expansion tile
                               : const SizedBox.shrink(),
                           // Widget for today's tasks
                           today.isNotEmpty

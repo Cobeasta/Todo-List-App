@@ -3,7 +3,6 @@ import 'dart:collection';
 import 'package:flutter/material.dart';
 import 'package:todo_list/Settings.dart';
 import 'package:todo_list/database/typeConverters/DateTimeConverter.dart';
-import 'package:todo_list/main.dart';
 import 'package:injectable/injectable.dart';
 
 import 'package:todo_list/task/task_repository.dart';
@@ -34,7 +33,7 @@ enum TaskListModes {
   final int value;
 }
 
-@injectable
+@singleton
 class TaskListVM extends ChangeNotifier {
 
   // State

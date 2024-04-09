@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:todo_list/main.dart';
+import 'package:todo_list/di.dart';
 import 'package:todo_list/task/TaskModel.dart';
 import 'package:todo_list/task/task_repository.dart';
 import 'package:todo_list/task/taskList/TaskListVM.dart';
@@ -31,6 +31,9 @@ class EditTaskVM extends ChangeNotifier {
     _initialized = false;
     _titleController.text = _taskModel.title ?? "";
     _descriptionController.text = _taskModel.description ?? "";
+
+    getIt.getAsync<TaskRepository>().then((value) => start(value));
+
   }
 
   void start(TaskRepository repository) {
