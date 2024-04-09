@@ -1,14 +1,7 @@
-import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todo_list/task/taskList/TaskListVM.dart';
 
-@module
-abstract class SharedPrefModule {
-  @singleton
-  Future<SharedPreferences> get prefs => SharedPreferences.getInstance();
-}
 
-@Singleton()
 class Settings {
   SharedPreferences prefs;
 

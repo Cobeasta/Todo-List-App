@@ -1,8 +1,6 @@
-import 'package:injectable/injectable.dart';
 import 'package:todo_list/database/tables/task.dart';
 import 'package:todo_list/task/TaskModel.dart';
 
-@singleton
 class TaskRepository {
    final TaskDao _taskDao;
 

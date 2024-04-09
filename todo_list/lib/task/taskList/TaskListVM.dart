@@ -1,9 +1,10 @@
 import 'dart:collection';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:todo_list/Settings.dart';
 import 'package:todo_list/database/typeConverters/DateTimeConverter.dart';
-import 'package:injectable/injectable.dart';
+import 'package:todo_list/main.dart';
 
 import 'package:todo_list/task/task_repository.dart';
 import 'package:todo_list/task/TaskModel.dart';
@@ -33,12 +34,10 @@ enum TaskListModes {
   final int value;
 }
 
-@singleton
 class TaskListVM extends ChangeNotifier {
-
-  // State
-  bool _loading = false;
-  final List<TaskModel> _tasks = [];
+// Dependencies
+  late TaskRepository _repository;
+  late Settings _settings;
 
   // Configuration
 
@@ -58,6 +57,12 @@ class TaskListVM extends ChangeNotifier {
     }
   }
 
+  // State
+  bool _loading = false;
+  final List<TaskModel> _tasks = [];
+  bool _settingsInitialized = false;
+  bool _repositoryInitialized = false;
+
   // Getters
   bool get loading => _loading;
 
@@ -65,18 +70,47 @@ class TaskListVM extends ChangeNotifier {
 
   bool get showCompleted => _showCompleted;
 
-  // Dependencies
-   final TaskRepository _repository;
-   final Settings _settings;
+  bool get initialized => _repositoryInitialized && _settingsInitialized;
 
-  TaskListVM(this._repository, this._settings);
+  TaskListVM();
 
-  void _initAsync(void Function() callback) async {
+  void init() {
+    if (kDebugMode) {
+      print("TaskListVM init");
+    }
+    getIt.getAsync<Settings>().then((value) => initSettings(value));
+    getIt.getAsync<TaskRepository>().then((value) => initRepository(value));
+  }
+
+  void initSettings(Settings settings) {
+    _settings = settings;
+    _settingsInitialized = true;
+    if (kDebugMode) {
+      print("TaskListVM Settings initialized");
+    }
     _getSettings();
-    callback();
+    if (_settingsInitialized && _repositoryInitialized) {
+      getAllTasks();
+    }
+  }
+
+  void initRepository(TaskRepository repository) {
+    _repository = repository;
+    _repositoryInitialized = true;
+    if (kDebugMode) {
+      print("TaskListVM repository initialized");
+    }
+    if (_settingsInitialized && _repositoryInitialized) {
+      getAllTasks();
+
+    }
   }
 
   void _getSettings() {
+    if (kDebugMode) {
+      print("TaskListVM getSettings");
+    }
+
     _showOverdue = _settings.taskListShowOverdue;
     mode = _settings.taskListMode;
     _showCompleted = _settings.taskListShowCompleted;
@@ -120,29 +154,38 @@ class TaskListVM extends ChangeNotifier {
   }
 
   Future<void> onRefresh() async {
-
     getAllTasks();
   }
 
   void getAllTasks() async {
-
+    if (kDebugMode) {
+      print("TaskListVM getAllTasks");
+    }
     _loading = true;
     notifyListeners();
     _tasks.clear();
     List<TaskModel> tasks = await _repository.listTasks();
     _tasks.addAll(tasks);
     _loading = false;
+    if (kDebugMode) {
+      print("TaskListVM Received ${tasks.length} Tasks");
+    }
     notifyListeners();
   }
 
 // Task list implementations
 
   void removeTask(TaskModel model) {
-
+    if (kDebugMode) {
+      print("TaskListVM removeTask");
+    }
     _tasks.removeWhere((element) => element.id == model.id);
   }
 
   void deleteCompletedTasks() {
+    if (kDebugMode) {
+      print("TaskListVM deleteCompletedTasks");
+    }
     List<TaskModel> toRemove = [];
     toRemove.addAll(_tasks.where((element) => element.isComplete));
     _tasks.removeWhere((element) => toRemove.contains(element));
@@ -154,6 +197,9 @@ class TaskListVM extends ChangeNotifier {
   }
 
   List<TaskModel> getToday() {
+    if (kDebugMode) {
+      print("TaskListVM getToday");
+    }
     return _tasks
         .where((e) {
           return !e.isComplete &&
@@ -166,6 +212,9 @@ class TaskListVM extends ChangeNotifier {
   /// Get a SplayTreeMap<DateTime, list<taskModel>
   ///  Overdue and complete tasks are not included in the result
   SplayTreeMap<DateTime, List<TaskModel>> getUpcoming() {
+    if (kDebugMode) {
+      print("TaskListVM getUpcoming");
+    }
     SplayTreeMap<DateTime, List<TaskModel>> groupedTasks =
         SplayTreeMap(compareDates);
     DateTime tod = DateTimeConverter.today();
@@ -191,6 +240,9 @@ class TaskListVM extends ChangeNotifier {
   }
 
   List<TaskModel> getOverdue() {
+    if (kDebugMode) {
+      print("TaskListVM getOverdue");
+    }
     return _tasks
         .where((e) =>
             compareDates(e.deadline, DateTimeConverter.today()) < 0 &&
@@ -200,6 +252,9 @@ class TaskListVM extends ChangeNotifier {
   }
 
   List<TaskModel> getComplete() {
+    if (kDebugMode) {
+      print("TaskListVM getComplete");
+    }
     return _tasks.where((e) => e.isComplete).toSet().toList();
   }
 
