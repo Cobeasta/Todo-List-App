@@ -1,19 +1,13 @@
 import 'package:floor/floor.dart';
-import 'package:injectable/injectable.dart';
 import 'package:todo_list/database/AppDatabase.dart';
-import 'package:todo_list/database/tables/user.dart';
-import 'package:todo_list/database/tables/user_protected_table.dart';
 import 'package:todo_list/database/typeConverters/DateTimeConverter.dart';
-import 'package:todo_list/tasklist_auth.dart';
 import 'package:todo_list/task/TaskModel.dart';
 
 /// Classes/data for relational representation of a task, accessing tasks in database
-@Entity(tableName: Task.tableName, foreignKeys: [
-  UserProtectedTableBase.userForeignKey
-])
-class Task extends UserProtectedTableBase{
+@Entity(tableName: Task.tableName)
+class Task{
   Task(
-      this.id, this.title, this.description, this.deadline, this.completedDate, super.userId);
+      this.id, this.title, this.description, this.deadline, this.completedDate);
 
   @ignore
   static const tableName = "task";
@@ -26,11 +20,11 @@ class Task extends UserProtectedTableBase{
   final DateTime deadline;
   final DateTime? completedDate; // optional field for completion
 
-  Task.create(this.title, this.description, this.deadline, super.userId)
+  Task.create(this.title, this.description, this.deadline)
       : id = null,
         completedDate = null;
 
-  Task.createEmpty(super.userId)
+  Task.createEmpty()
       : id = null,
         title = "",
         description = "",
@@ -41,22 +35,22 @@ class Task extends UserProtectedTableBase{
 abstract class TaskDao {
 
 
-  @Query('SELECT * FROM ${Task.tableName} WHERE ${UserProtectedTableBase.userTableFilter}')
-  Future<List<Task>> list(int uid);
+  @Query('SELECT * FROM ${Task.tableName}}')
+  Future<List<Task>> list();
 
-  @Query("SELECT * FROM ${Task.tableName} WHERE title = :title AND ${UserProtectedTableBase.userTableFilter}")
-  Future<Task?> getByTitle(String title, int uid);
+  @Query("SELECT * FROM ${Task.tableName} WHERE title = :title")
+  Future<Task?> getByTitle(String title);
 
-  @Query("DELETE FROM ${Task.tableName} WHERE id = :id AND ${UserProtectedTableBase.userTableFilter}")
-  Future<void> delete(int id, int uid);
-
-  @Query(
-      "SELECT FROM ${Task.tableName} WHERE isComplete IS NOT NULL AND ${UserProtectedTableBase.userTableFilter} ORDER BY isComplete DESC")
-  Future<List<Task>> getIncomplete(int uid);
+  @Query("DELETE FROM ${Task.tableName} WHERE id = :id")
+  Future<void> delete(int id);
 
   @Query(
-      "SELECT FROM ${Task.tableName} WHERE isComplete IS NULL AND ${UserProtectedTableBase.userTableFilter} ORDER BY isComplete DESC")
-  Future<List<Task>> getComplete(int uid);
+      "SELECT FROM ${Task.tableName} WHERE isComplete IS NOT NULL ORDER BY isComplete DESC")
+  Future<List<Task>> getIncomplete();
+
+  @Query(
+      "SELECT FROM ${Task.tableName} WHERE isComplete IS NULL ORDER BY isComplete DESC")
+  Future<List<Task>> getComplete();
 
   @insert
   Future<void> insertOne(Task task);

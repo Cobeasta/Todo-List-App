@@ -1,6 +1,5 @@
 import 'dart:core';
 
-import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_list/di.dart';
@@ -126,10 +125,6 @@ class TaskListView extends State<TaskList> {
                                 vm.deleteCompletedTasks();
                               },
                             ),
-                            MenuItemButton(
-                              child: const Text("LogOut"),
-                              onPressed: () => Amplify.Auth.signOut(),
-                            )
                           ],
                           onOpen: () {},
                           onClose: () {},

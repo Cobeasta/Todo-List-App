@@ -1,28 +1,16 @@
 import 'dart:async';
 
-import 'package:amplify_auth_cognito/amplify_auth_cognito.dart';
-import 'package:amplify_authenticator/amplify_authenticator.dart';
-import 'package:amplify_flutter/amplify_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:todo_list/di.dart';
 import 'package:todo_list/task/task_repository.dart';
 import 'package:todo_list/task/taskList/TaskList.dart';
-import 'package:todo_list/tasklist_auth.dart';
 
-import 'user_repository.dart';
-
-
-Future<void> main() async{
-
+Future<void> main() async {
   return runZonedGuarded(() async {
     WidgetsFlutterBinding.ensureInitialized();
     await configureDependencies();
     runApp(const MyApp());
-  }, (error, stack) {
-    safePrint(stack);
-    safePrint(error);
-  });
-
+  }, (error, stack) {});
 }
 
 /*
@@ -71,31 +59,25 @@ class MyApp extends StatefulWidget {
   @override
   State<StatefulWidget> createState() => _MyAppState();
 
-  // This widget is the root of your application.
-
+// This widget is the root of your application.
 }
-class _MyAppState extends State<MyApp> {
 
+class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
-    return Authenticator(child: MaterialApp(
-          title: 'Flutter Demo',
-          builder: Authenticator.builder(),
-          theme: ThemeData(
-            colorScheme: ColorScheme.fromSeed(seedColor: Colors.white10,
-                brightness: Brightness.dark),
-            useMaterial3: true,
-          ),
-          home: const TaskList(),
-        ));
+    return MaterialApp(
+      title: 'Flutter Demo',
+      theme: ThemeData(
+        colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.white10, brightness: Brightness.dark),
+        useMaterial3: true,
+      ),
+      home: const TaskList(),
+    );
   }
 
   @override
   void initState() {
     super.initState();
-    getIt.getAsync<TaskListAuth>().then((value) => value.init(),);
-
   }
-
-
 }
