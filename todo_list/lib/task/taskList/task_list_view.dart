@@ -2,6 +2,7 @@ import 'dart:core';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_list/database/typeConverters/DateTimeConverter.dart';
 import 'package:todo_list/main.dart';
@@ -44,13 +45,15 @@ class TaskListView extends State<TaskList> {
       print("TaskListView build");
     }
 
+
+
     return ChangeNotifierProvider<TaskListVM>.value(
         value: _vm,
         child: Consumer<TaskListVM>(
           builder: (context, vm, child) {
-            if (!vm.initialized) {
+            if (!vm.settingsInitialized) {
               if (kDebugMode) {
-                print("TaskListView vm not initialized");
+                print("TaskListView VM settings not initialized");
               }
               return const SizedBox.shrink();
             }
@@ -69,6 +72,15 @@ class TaskListView extends State<TaskList> {
 
   //  Main list
   Widget buildBody(BuildContext context, TaskListVM vm) {
+
+    if (!vm.repositoryInitialized || vm.loading) {
+      return Stack(alignment: Alignment.topCenter, children: [
+        Positioned(
+            top: 70,
+            child:
+            LoadingAnimationWidget.staggeredDotsWave(color: Colors.white, size: 50)),
+      ]);
+    }
     return RefreshIndicator(
         onRefresh: vm.onRefresh,
         child: ListView(
@@ -82,7 +94,9 @@ class TaskListView extends State<TaskList> {
             ]));
   }
 
-  // Sublists
+  /**
+   * Build overflow menu for appbar. Includes configurations for list view.
+   */
   Widget buildOverflow(BuildContext context, TaskListVM vm) {
     return MenuAnchor(
         controller: _overflowController,
@@ -146,6 +160,10 @@ class TaskListView extends State<TaskList> {
         ));
   }
 
+  /**
+   * Build widget for all overdue tasks. If set to hide overdue tasks,
+   * sizedbox.shrink is used.
+   */
   Widget buildOverdue(BuildContext context, TaskListVM vm) {
     List<TaskModel> overdue = [];
 
@@ -153,6 +171,7 @@ class TaskListView extends State<TaskList> {
       return const SizedBox.shrink();
     }
     overdue = vm.getOverdue();
+
     return overdue.isNotEmpty
         ? ExpansionTile(
             title: Text(
@@ -167,6 +186,9 @@ class TaskListView extends State<TaskList> {
         : const SizedBox.shrink();
   }
 
+  /**
+   * Build today's tasks as a listview.
+   */
   Widget buildToday(BuildContext context, TaskListVM vm) {
     List<TaskModel> today = vm.getToday();
     DateTime tod = DateTimeConverter.today();
@@ -193,6 +215,9 @@ class TaskListView extends State<TaskList> {
             : const SizedBox.shrink();
   }
 
+  /**
+   * Build upcoming tasks widgets as a listview.
+   */
   Widget buildUpcoming(BuildContext context, TaskListVM vm) {
     Map<DateTime, List<TaskModel>> upcoming = {};
     List<DateTime> taskDays = [];

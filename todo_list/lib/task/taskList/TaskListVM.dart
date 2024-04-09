@@ -35,15 +35,22 @@ enum TaskListModes {
 }
 
 class TaskListVM extends ChangeNotifier {
-// Dependencies
+  // Dependencies
   late TaskRepository _repository;
   late Settings _settings;
 
-  // Configuration
+  final List<TaskModel> _tasks = [];
 
-  bool _showOverdue = true;
-  TaskListModes mode = TaskListModes.today;
-  bool _showCompleted = false;
+  //  View state
+  bool loading = false;
+  bool settingsInitialized = false;
+  bool repositoryInitialized = false;
+
+  TaskListModes get mode => _settings.taskListMode; // view mode
+  bool get showOverdue =>
+      _settings.taskListShowOverdue; // flag for showing overdue
+  bool get showCompleted =>
+      _settings.taskListShowCompleted; // flag show completed
 
   DateTime? get endDate {
     DateTime tod = DateTimeConverter.today();
@@ -57,21 +64,6 @@ class TaskListVM extends ChangeNotifier {
     }
   }
 
-  // State
-  bool _loading = false;
-  final List<TaskModel> _tasks = [];
-  bool _settingsInitialized = false;
-  bool _repositoryInitialized = false;
-
-  // Getters
-  bool get loading => _loading;
-
-  bool get showOverdue => _showOverdue;
-
-  bool get showCompleted => _showCompleted;
-
-  bool get initialized => _repositoryInitialized && _settingsInitialized;
-
   TaskListVM();
 
   void init() {
@@ -84,36 +76,20 @@ class TaskListVM extends ChangeNotifier {
 
   void initSettings(Settings settings) {
     _settings = settings;
-    _settingsInitialized = true;
+    settingsInitialized = true;
     if (kDebugMode) {
       print("TaskListVM Settings initialized");
     }
-    _getSettings();
-    if (_settingsInitialized && _repositoryInitialized) {
-      getAllTasks();
-    }
+    notifyListeners();
   }
 
   void initRepository(TaskRepository repository) {
     _repository = repository;
-    _repositoryInitialized = true;
+    repositoryInitialized = true;
     if (kDebugMode) {
       print("TaskListVM repository initialized");
     }
-    if (_settingsInitialized && _repositoryInitialized) {
-      getAllTasks();
-
-    }
-  }
-
-  void _getSettings() {
-    if (kDebugMode) {
-      print("TaskListVM getSettings");
-    }
-
-    _showOverdue = _settings.taskListShowOverdue;
-    mode = _settings.taskListMode;
-    _showCompleted = _settings.taskListShowCompleted;
+    getAllTasks();
   }
 
   void configure(
@@ -121,16 +97,13 @@ class TaskListVM extends ChangeNotifier {
       TaskListModes? mode = TaskListModes.today,
       bool? showCompleted}) {
     if (showOverdue != null) {
-      _showOverdue = showOverdue;
-      _settings.taskListShowOverdue = _showOverdue;
+      _settings.taskListShowOverdue = showOverdue;
     }
     if (showCompleted != null) {
-      _showCompleted = showCompleted;
-      _settings.taskListShowCompleted = _showCompleted;
+      _settings.taskListShowCompleted = showCompleted;
     }
 
     if (mode != null) {
-      this.mode = mode;
       _settings.taskListMode = mode;
     }
     notifyListeners();
@@ -161,12 +134,12 @@ class TaskListVM extends ChangeNotifier {
     if (kDebugMode) {
       print("TaskListVM getAllTasks");
     }
-    _loading = true;
+    loading = true;
     notifyListeners();
     _tasks.clear();
     List<TaskModel> tasks = await _repository.listTasks();
     _tasks.addAll(tasks);
-    _loading = false;
+    loading = false;
     if (kDebugMode) {
       print("TaskListVM Received ${tasks.length} Tasks");
     }
@@ -221,7 +194,7 @@ class TaskListVM extends ChangeNotifier {
     // Get and filter tasks
     Set<TaskModel> filtered = _tasks.where((e) {
       return (!e.isComplete &&
-          (_showOverdue || !e.overdue) &&
+          (showOverdue || !e.overdue) &&
           compareDates(e.deadline, tod) > 0 &&
           (endDate != null && (e.deadline.isBefore(endDate!)) ||
               endDate == null));
