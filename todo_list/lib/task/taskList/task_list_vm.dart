@@ -1,27 +1,14 @@
 import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:todo_list/Settings.dart';
-import 'package:todo_list/database/typeConverters/DateTimeConverter.dart';
+import 'package:todo_list/date_utils.dart';
 import 'package:todo_list/main.dart';
 
 import 'package:todo_list/task/task_repository.dart';
-import 'package:todo_list/task/TaskModel.dart';
+import 'package:todo_list/task/task_model.dart';
 
-/*class Setting<T> {
-  final String name;
-  T value;
-  final T defaultValue;
-  Settings settings;
 
-  void init() {
-
-  }
-  T get getValue => value;
-  Setting(this.name, this.defaultValue, this.value, this.settings);
-
-}*/
 
 enum TaskListModes {
   today(name: "Today", value: 0),
@@ -53,10 +40,10 @@ class TaskListVM extends ChangeNotifier {
       _settings.taskListShowCompleted; // flag show completed
 
   DateTime? get endDate {
-    DateTime tod = DateTimeConverter.today();
+    DateTime tod = TaskListDateUtils.today();
     switch (mode) {
       case TaskListModes.today:
-        return DateTimeConverter.tomorrow();
+        return TaskListDateUtils.tomorrow();
       case TaskListModes.week:
         return DateTime(tod.year, tod.month, tod.day + 8);
       case TaskListModes.upcoming:
@@ -66,39 +53,34 @@ class TaskListVM extends ChangeNotifier {
 
   TaskListVM();
 
+  /// Start initialization of taskListVM
   void init() {
     if (kDebugMode) {
       print("TaskListVM init");
     }
-    getIt.getAsync<Settings>().then((value) => initSettings(value));
-    getIt.getAsync<TaskRepository>().then((value) => initRepository(value));
-  }
-
-  void initSettings(Settings settings) {
-    _settings = settings;
-    settingsInitialized = true;
-    if (kDebugMode) {
-      print("TaskListVM Settings initialized");
-    }
-    notifyListeners();
-  }
-
-  void initRepository(TaskRepository repository) {
-    _repository = repository;
-    repositoryInitialized = true;
-    if (kDebugMode) {
-      print("TaskListVM repository initialized");
-    }
-    getAllTasks();
+    getIt.getAsync<Settings>().then((settings) {
+      _settings = settings;
+      settingsInitialized = true;
+      if (kDebugMode) {
+        print("TaskListVM Settings initialized");
+      }
+      notifyListeners();
+    });
+    getIt.getAsync<TaskRepository>().then((repository) {
+      _repository = repository;
+      repositoryInitialized = true;
+      if (kDebugMode) {
+        print("TaskListVM repository initialized");
+      }
+      getAllTasks();
+    });
   }
 
   void configure(
       {bool? showOverdue,
       TaskListModes? mode = TaskListModes.today,
       bool? showCompleted}) {
-    if (showOverdue != null) {
-      _settings.taskListShowOverdue = showOverdue;
-    }
+
     if (showCompleted != null) {
       _settings.taskListShowCompleted = showCompleted;
     }
@@ -107,6 +89,9 @@ class TaskListVM extends ChangeNotifier {
       _settings.taskListMode = mode;
     }
     notifyListeners();
+  }
+  selectViewMode(TaskListModes mode) {
+    _settings.taskListMode = mode;
   }
 
   void addTask(TaskModel model) {
@@ -176,7 +161,7 @@ class TaskListVM extends ChangeNotifier {
     return _tasks
         .where((e) {
           return !e.isComplete &&
-              compareDates(e.deadline, DateTimeConverter.today()) == 0;
+              TaskListDateUtils.compareDates(e.deadline, TaskListDateUtils.today()) == 0;
         })
         .toSet()
         .toList();
@@ -189,13 +174,13 @@ class TaskListVM extends ChangeNotifier {
       print("TaskListVM getUpcoming");
     }
     SplayTreeMap<DateTime, List<TaskModel>> groupedTasks =
-        SplayTreeMap(compareDates);
-    DateTime tod = DateTimeConverter.today();
+        SplayTreeMap(TaskListDateUtils.compareDates);
+    DateTime tod = TaskListDateUtils.today();
     // Get and filter tasks
     Set<TaskModel> filtered = _tasks.where((e) {
       return (!e.isComplete &&
           (showOverdue || !e.overdue) &&
-          compareDates(e.deadline, tod) > 0 &&
+          TaskListDateUtils.compareDates(e.deadline, tod) > 0 &&
           (endDate != null && (e.deadline.isBefore(endDate!)) ||
               endDate == null));
     }).toSet();
@@ -218,7 +203,7 @@ class TaskListVM extends ChangeNotifier {
     }
     return _tasks
         .where((e) =>
-            compareDates(e.deadline, DateTimeConverter.today()) < 0 &&
+    TaskListDateUtils.compareDates(e.deadline, TaskListDateUtils.today()) < 0 &&
             !e.isComplete)
         .toSet()
         .toList();
@@ -234,4 +219,6 @@ class TaskListVM extends ChangeNotifier {
   void onModalClose() {
     notifyListeners();
   }
+
+
 }

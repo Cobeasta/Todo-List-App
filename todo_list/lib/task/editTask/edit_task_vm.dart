@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:todo_list/main.dart';
-import 'package:todo_list/task/TaskModel.dart';
+import 'package:todo_list/task/task_model.dart';
 import 'package:todo_list/task/task_repository.dart';
-import 'package:todo_list/task/taskList/TaskListVM.dart';
+import 'package:todo_list/task/taskList/task_list_vm.dart';
 
 class EditTaskVM extends ChangeNotifier {
   late TaskRepository _repository;

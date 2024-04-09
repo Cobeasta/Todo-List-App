@@ -4,13 +4,12 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
 import 'package:provider/provider.dart';
-import 'package:todo_list/database/typeConverters/DateTimeConverter.dart';
-import 'package:todo_list/main.dart';
-import 'package:todo_list/task/TaskModel.dart';
-import 'package:todo_list/task/editTask/EditTaskView.dart';
+import 'package:todo_list/date_utils.dart';
+import 'package:todo_list/task/task_model.dart';
+import 'package:todo_list/task/editTask/edit_task_view.dart';
 import 'package:todo_list/task/taskList/TaskList.dart';
-import 'package:todo_list/task/taskList/TaskListVM.dart';
-import 'package:todo_list/task/taskList/taskListItem/TaskListItem.dart';
+import 'package:todo_list/task/taskList/task_list_vm.dart';
+import 'package:todo_list/task/taskList/taskListItem/task_list_item.dart';
 
 class TaskListView extends State<TaskList> {
   late TaskListVM _vm;
@@ -45,8 +44,6 @@ class TaskListView extends State<TaskList> {
       print("TaskListView build");
     }
 
-
-
     return ChangeNotifierProvider<TaskListVM>.value(
         value: _vm,
         child: Consumer<TaskListVM>(
@@ -70,30 +67,6 @@ class TaskListView extends State<TaskList> {
         ));
   }
 
-  //  Main list
-  Widget buildBody(BuildContext context, TaskListVM vm) {
-
-    if (!vm.repositoryInitialized || vm.loading) {
-      return Stack(alignment: Alignment.topCenter, children: [
-        Positioned(
-            top: 70,
-            child:
-            LoadingAnimationWidget.staggeredDotsWave(color: Colors.white, size: 50)),
-      ]);
-    }
-    return RefreshIndicator(
-        onRefresh: vm.onRefresh,
-        child: ListView(
-            shrinkWrap: false,
-            physics: const AlwaysScrollableScrollPhysics(),
-            children: [
-              buildOverdue(context, vm),
-              buildToday(context, vm),
-              buildUpcoming(context, vm),
-              buildCompleted(context, vm),
-            ]));
-  }
-
   /**
    * Build overflow menu for appbar. Includes configurations for list view.
    */
@@ -102,48 +75,49 @@ class TaskListView extends State<TaskList> {
         controller: _overflowController,
         menuChildren: [
           SubmenuButton(
+            // submenu for task list view mode
             menuChildren: [
               RadioMenuButton(
                   value: TaskListModes.today,
                   groupValue: vm.mode,
-                  onChanged: (value) => vm.configure(mode: value),
+                  onChanged: (value) => vm.selectViewMode(TaskListModes.today),
                   child: const Text("Today")),
               RadioMenuButton(
                   value: TaskListModes.week,
                   groupValue: vm.mode,
-                  onChanged: (value) => vm.configure(mode: value),
+                  onChanged: (value) => vm.selectViewMode(TaskListModes.today),
                   child: const Text("Next 7 Days")),
               RadioMenuButton(
                   value: TaskListModes.upcoming,
                   groupValue: vm.mode,
-                  onChanged: (value) => vm.configure(mode: value),
+                  onChanged: (value) => vm.selectViewMode(TaskListModes.today),
                   child: const Text("Upcoming")),
             ],
             child: Text(
               "Mode",
               style: Theme.of(context).textTheme.bodyLarge,
             ),
-          ),
+          ), // TaskList mode select
           MenuItemButton(
             onPressed: () => vm.configure(showOverdue: !vm.showOverdue),
             leadingIcon: Icon(vm.showOverdue
                 ? Icons.check_box_rounded
                 : Icons.check_box_outline_blank_rounded),
             child: const Text("Show Overdue"),
-          ),
+          ), // Toggle showing overdue tasks
           MenuItemButton(
             onPressed: () => vm.configure(showCompleted: !vm.showCompleted),
             leadingIcon: Icon(vm.showCompleted
                 ? Icons.check_box_rounded
                 : Icons.check_box_outline_blank_rounded),
             child: const Text("Show Completed"),
-          ),
+          ), // toggle showing completed tasks
           MenuItemButton(
             child: const Text("Delete Completed"),
             onPressed: () {
               vm.deleteCompletedTasks();
             },
-          ),
+          ), // Action delete all completed tasks
         ],
         onOpen: () {},
         onClose: () {},
@@ -158,6 +132,32 @@ class TaskListView extends State<TaskList> {
           icon: const Icon(Icons.more_vert),
           tooltip: "Show menu",
         ));
+  }
+
+  /**
+   * Build main body. Top level activities like refreshing, loading,
+   * and building the whole list
+   */
+  Widget buildBody(BuildContext context, TaskListVM vm) {
+    if (!vm.repositoryInitialized || vm.loading) {
+      return Stack(alignment: Alignment.topCenter, children: [
+        Positioned(
+            top: 70,
+            child:
+                LoadingAnimationWidget.waveDots(color: Colors.white, size: 50)),
+      ]);
+    }
+    return RefreshIndicator(
+        onRefresh: vm.onRefresh,
+        child: ListView(
+            shrinkWrap: false,
+            physics: const AlwaysScrollableScrollPhysics(),
+            children: [
+              buildOverdue(context, vm),
+              buildToday(context, vm),
+              buildUpcoming(context, vm),
+              buildCompleted(context, vm),
+            ]));
   }
 
   /**
@@ -190,21 +190,21 @@ class TaskListView extends State<TaskList> {
    * Build today's tasks as a listview.
    */
   Widget buildToday(BuildContext context, TaskListVM vm) {
-    List<TaskModel> today = vm.getToday();
-    DateTime tod = DateTimeConverter.today();
+    List<TaskModel> tasks = vm.getToday();
+    DateTime tod = TaskListDateUtils.today();
 
-    return today.isNotEmpty
+    return tasks.isNotEmpty
         ? ListView(
             physics: const ClampingScrollPhysics(),
             shrinkWrap: true,
             children: [
               ListTile(
                 title: Text(
-                  "${formatDate(tod)} \u2022 ${vm.mode == TaskListModes.today ? getWeekday(tod) : "Today \u2022 ${getWeekday(tod)}"}",
+                  "${TaskListDateUtils.formatDate(tod)} \u2022 ${vm.mode == TaskListModes.today ? TaskListDateUtils.getWeekday(tod) : "Today \u2022 ${TaskListDateUtils.getWeekday(tod)}"}",
                   style: Theme.of(context).textTheme.bodyLarge,
                 ),
               ),
-              ...today.map((e) => TaskListItemWidget(e, vm)),
+              ...tasks.map((e) => TaskListItemWidget(e, vm)),
             ],
           )
         : vm.mode == TaskListModes.today
@@ -222,8 +222,6 @@ class TaskListView extends State<TaskList> {
     Map<DateTime, List<TaskModel>> upcoming = {};
     List<DateTime> taskDays = [];
 
-    DateTime tod = DateTimeConverter.today();
-
     if (vm.mode == TaskListModes.today) {
       return const SizedBox.shrink();
     }
@@ -240,9 +238,9 @@ class TaskListView extends State<TaskList> {
               DateTime date = taskDays[index];
               List<TaskModel> dayTasks = upcoming[date]!;
 
-              String dateStr = formatDate(date);
-              String weekday = getWeekday(date);
-              int relativeDay = daysUntil(date);
+              String dateStr = TaskListDateUtils.formatDate(date);
+              String weekday = TaskListDateUtils.getWeekday(date);
+              int relativeDay = TaskListDateUtils.daysUntil(date);
 
               String titleStr;
               if (relativeDay == 1) {
@@ -303,7 +301,7 @@ class TaskListView extends State<TaskList> {
     }
     completed = vm.getComplete();
     completed.sort(
-      (a, b) => compareDates(a.deadline, b.deadline),
+      (a, b) => TaskListDateUtils.compareDates(a.deadline, b.deadline),
     );
 
     return vm.showCompleted && completed.isNotEmpty

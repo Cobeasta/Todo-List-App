@@ -1,9 +1,9 @@
 
 import 'package:flutter/material.dart';
-import 'package:todo_list/task/TaskModel.dart';
-import 'package:todo_list/task/taskList/TaskListVM.dart';
+import 'package:todo_list/task/task_model.dart';
+import 'package:todo_list/task/taskList/task_list_vm.dart';
 
-import 'EditTaskView.dart';
+import 'edit_task_view.dart';
 
 class EditTaskModal extends StatefulWidget {
   final TaskModel _task;

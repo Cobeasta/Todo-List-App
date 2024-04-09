@@ -1,5 +1,5 @@
 import 'package:todo_list/database/tables/task.dart';
-import 'package:todo_list/database/typeConverters/DateTimeConverter.dart';
+import 'package:todo_list/date_utils.dart';
 
 class TaskModel {
   TaskModel(Task task)
@@ -13,7 +13,7 @@ class TaskModel {
       : _id = null,
         _title = "",
         _description = "",
-        _deadline = DateTimeConverter.today(),
+        _deadline = TaskListDateUtils.today(),
         _completedDate = null;
 
   final int? _id;
@@ -31,7 +31,7 @@ class TaskModel {
   bool get isComplete => _completedDate != null;
 
   bool get overdue =>
-      _deadline.isBefore(DateTimeConverter.today()) && !isComplete;
+      _deadline.isBefore(TaskListDateUtils.today()) && !isComplete;
 
   DateTime get deadline => _deadline;
 
@@ -53,7 +53,7 @@ class TaskModel {
   void setComplete(bool? value) {
     if (value == null && _completedDate == null) {
       // completion not specified, task not complete
-      _completedDate = DateTimeConverter.today();
+      _completedDate = TaskListDateUtils.today();
     } else if (value == null && _completedDate != null) {
       // completion not specified, task incomplete
       _completedDate = null;

@@ -1,5 +1,5 @@
 import 'package:todo_list/database/tables/task.dart';
-import 'package:todo_list/task/TaskModel.dart';
+import 'package:todo_list/task/task_model.dart';
 
 class TaskRepository {
    final TaskDao _taskDao;

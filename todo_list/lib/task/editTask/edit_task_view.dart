@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:todo_list/basic_widgets/TaskListCheckBox.dart';
-import 'package:todo_list/database/typeConverters/DateTimeConverter.dart';
-import 'package:todo_list/task/TaskModel.dart';
-import 'package:todo_list/task/taskList/TaskListVM.dart';
+import 'package:todo_list/date_utils.dart';
+import 'package:todo_list/task/task_model.dart';
+import 'package:todo_list/task/taskList/task_list_vm.dart';
 
-import 'EditTaskModal.dart';
-import 'EditTaskVM.dart';
+import 'edit_task_modal.dart';
+import 'edit_task_vm.dart';
 
 class EditTaskModalView extends State<EditTaskModal> {
   late EditTaskVM _viewmodel;
@@ -29,8 +29,38 @@ class EditTaskModalView extends State<EditTaskModal> {
   }
 
   Widget buildFormItems(BuildContext context) {
+    DateTime in2Days = TaskListDateUtils.daysFromToday(2);
+
     return Column(
       children: [
+        Row(
+          children: [
+            Card(
+              child: ElevatedButton(
+                onPressed: () {
+                  _viewmodel.updateDeadline(TaskListDateUtils.today());
+                },
+                child: const Text("Today"),
+              ),
+            ),
+            Card(
+              child: ElevatedButton(
+                onPressed: () {
+                  _viewmodel.updateDeadline(TaskListDateUtils.tomorrow());
+                },
+                child: const Text("Tomorrow"),
+              ),
+            ),
+            Card(
+              child: ElevatedButton(
+                onPressed: () {
+                  _viewmodel.updateDeadline(TaskListDateUtils.tomorrow());
+                },
+                child:  Text(TaskListDateUtils.getWeekday(in2Days)),
+              ),
+            ),
+          ],
+        ),
         buildFormItem(
           context,
           leading: TaskListCheckBox(_viewmodel.isCompleted,
@@ -71,7 +101,7 @@ class EditTaskModalView extends State<EditTaskModal> {
             child: Row(
               children: [
                 const Icon(Icons.calendar_month_outlined),
-                Text(formatDate(_viewmodel.deadline)),
+                Text(TaskListDateUtils.formatDate(_viewmodel.deadline)),
               ],
             )),
         IconButton(
@@ -110,11 +140,11 @@ class EditTaskModalView extends State<EditTaskModal> {
   void _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
         context: context,
-        initialDate: DateTimeConverter.today(),
-        firstDate: DateTimeConverter.today(),
+        initialDate: TaskListDateUtils.today(),
+        firstDate: TaskListDateUtils.today(),
         lastDate: DateTime(DateTime.timestamp().year + 5),);
     if (picked == null) {
-      _viewmodel.updateDeadline(DateTimeConverter.today());
+      _viewmodel.updateDeadline(TaskListDateUtils.today());
     } else {
       _viewmodel.updateDeadline(picked);
     }

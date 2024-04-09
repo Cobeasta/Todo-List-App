@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:todo_list/task/taskList/TaskListVM.dart';
-import 'package:todo_list/task/taskList/taskListItem/TaskListItemView.dart';
-import 'package:todo_list/task/TaskModel.dart';
+import 'package:todo_list/task/taskList/task_list_vm.dart';
+import 'package:todo_list/task/taskList/taskListItem/task_list_item_view.dart';
+import 'package:todo_list/task/task_model.dart';
 
 /// Entry state for task list item
 class TaskListItemWidget extends StatefulWidget {
