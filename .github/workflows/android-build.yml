@@ -1,5 +1,8 @@
 name: Android Build
-
+defaults:
+  run:
+    shell: bash
+    working-directory: ./todo_list
 on:
   push:
     branches: [ "main" ]
@@ -9,11 +12,6 @@ on:
   workflow_call:
     outputs:
       apk-artifact: ${{ steps.artifact-upload.artifact-id }}
-
-defaults:
-  run:
-    shell: bash
-    working-directory: ./todo_list
 jobs:
   build:
     runs-on: ubuntu-latest
