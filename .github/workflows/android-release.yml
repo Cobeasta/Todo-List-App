@@ -10,8 +10,9 @@ jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      APK_PATH: build/app/outputs/flutter-apk/app-release.apk
-      AAB_PATH: build/app/outputs/bundle/release/app-release.aab
+      APK_PATH: todo_list/build/app/outputs/flutter-apk/app-release.apk
+      AAB_PATH: todo_list/build/app/outputs/bundle/release/app-release.aab
+      WORKDIR: ./todo_list
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
@@ -26,13 +27,17 @@ jobs:
           channel: 'stable'
       - name: Get dependencies
         run: flutter pub get
+        working-directory: ${{ env.WORKDIR }}
       - name: Generate code
         run: dart run build_runner build
       - name: Lint project
         run: flutter analyze
+        working-directory: ${{ env.WORKDIR }}
       - name: Test
+        working-directory: ${{ env.WORKDIR }}
         run: flutter test
       - name: Start release build
+        working-directory: ${{ env.WORKDIR }}
         run: flutter build appbundle --release
       - name: Upload generated artifacts
         uses: actions/upload-artifact@master
