@@ -79,3 +79,4 @@ amplifytools.xcconfig
 **.sample
 #amplify-do-not-edit-end
 
+/lib/database/app_database.g.dart
