@@ -15,7 +15,8 @@ jobs:
   build:
     runs-on: ubuntu-latest
     defaults:
-      steps:
+      run:
+        shell: bash
         working-directory: ./todo_list
     env:
       apk-path: ./todo_list/build/app/outputs/flutter-apk/app-release.apk
