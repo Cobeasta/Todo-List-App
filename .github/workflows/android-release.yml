@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
 jobs:
   build:
-    uses Cobeasta/Todo-List-App/.github/workflows/android-build.yml@v1
+    uses: Cobeasta/Todo-List-App/.github/workflows/android-build.yml@v1
   release:
     runs-on: ubuntu-latest
     needs: build
