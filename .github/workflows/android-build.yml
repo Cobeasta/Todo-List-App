@@ -1,8 +1,5 @@
 name: Android Build
-defaults:
-  run:
-    shell: bash
-    working-directory: ./todo_list
+
 on:
   push:
     branches: [ "main" ]
@@ -15,6 +12,10 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        shell: bash
+        working-directory: ./todo_list
     env:
       APK_PATH: todo_list/build/app/outputs/flutter-apk/app-release.apk
       AAB_PATH: todo_list/build/app/outputs/bundle/release/app-release.aab
