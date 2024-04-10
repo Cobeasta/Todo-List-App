@@ -4,7 +4,6 @@ import 'dart:core';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:path/path.dart';
 import 'package:provider/provider.dart';
 import 'package:todo_list/date_utils.dart';
 import 'package:todo_list/task/task_model.dart';

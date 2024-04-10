@@ -13,7 +13,6 @@ class EditTaskVM extends ChangeNotifier {
 
   EditTaskVM(this._taskListVM, this._taskModel);
 
-  bool _initialized = false;
 
   final TextEditingController _titleController = TextEditingController();
 
@@ -28,9 +27,8 @@ class EditTaskVM extends ChangeNotifier {
   DateTime get deadline => _taskModel.deadline;
 
   void init() {
-    _initialized = false;
-    _titleController.text = _taskModel.title ?? "";
-    _descriptionController.text = _taskModel.description ?? "";
+    _titleController.text = _taskModel.title;
+    _descriptionController.text = _taskModel.description;
 
     getIt.getAsync<TaskRepository>().then((value) => start(value));
 
@@ -45,7 +43,6 @@ class EditTaskVM extends ChangeNotifier {
     _descriptionController.addListener(() {
       _taskModel.updateDescription(_descriptionController.text);
     });
-    _initialized = true;
   }
 
   void updateTitle() {
