@@ -8,7 +8,9 @@ on:
   workflow_dispatch:
   workflow_call:
     outputs:
-      apk-artifact: ${{ jobs.build.outputs.release-apk }}
+      apk-artifact:
+        description: "Android APK file"
+        value: ${{ jobs.build.outputs.release-apk }}
 jobs:
   build:
     runs-on: ubuntu-latest
