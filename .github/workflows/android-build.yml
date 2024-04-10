@@ -9,6 +9,7 @@ on:
   workflow_call:
     outputs:
       apk-artifact: ${{ steps.artifact-upload.artifact-id }}
+
 defaults:
   run:
     shell: bash
