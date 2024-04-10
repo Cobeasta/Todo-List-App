@@ -19,8 +19,8 @@ jobs:
         shell: bash
         working-directory: ./todo_list
     env:
-      APK_PATH: build/app/outputs/flutter-apk/app-release.apk
-      AAB_PATH: build/app/outputs/bundle/release/app-release.aab
+      APK_PATH: ./build/app/outputs/flutter-apk/app-release.apk
+      AAB_PATH: ./build/app/outputs/bundle/release/app-release.aab
     outputs:
       apk-artifact: ${{ steps.artifact-upload.artifact-id}}
     steps:
@@ -40,7 +40,7 @@ jobs:
       - name: Generate code
         run: dart run build_runner build
       - name: Start apk release build
-        run: flutter build apk --release
+        run: flutter build apk --no-pub --release
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         id: artifact-upload
