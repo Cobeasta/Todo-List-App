@@ -8,7 +8,7 @@ on:
   workflow_dispatch:
   workflow_call:
     outputs:
-      apk-artifact: ${{ steps.artifact-upload.artifact-id }}
+      apk-artifact: ${{ jobs.build.outputs.release-apk }}
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -19,6 +19,8 @@ jobs:
     env:
       APK_PATH: todo_list/build/app/outputs/flutter-apk/app-release.apk
       AAB_PATH: todo_list/build/app/outputs/bundle/release/app-release.aab
+    outputs:
+      apk-artifact: ${{ steps.artifact-upload.artifact-id}}
     steps:
       - name: Checkout Code
         uses: actions/checkout@v3
