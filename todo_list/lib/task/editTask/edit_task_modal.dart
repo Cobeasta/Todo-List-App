@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 import 'package:todo_list/task/task_model.dart';
 import 'package:todo_list/task/taskList/task_list_vm.dart';
@@ -18,7 +17,3 @@ class EditTaskModal extends StatefulWidget {
     return EditTaskModalView();
   }
 }
-
-
-
-

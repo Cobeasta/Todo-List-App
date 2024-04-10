@@ -1,10 +1,9 @@
 import 'package:floor/floor.dart';
-import 'package:todo_list/database/typeConverters/date_time_converter.dart';
 import 'package:todo_list/date_utils.dart';
 
 /// Classes/data for relational representation of a task, accessing tasks in database
 @Entity(tableName: Task.tableName)
-class Task{
+class Task {
   Task(
       this.id, this.title, this.description, this.deadline, this.completedDate);
 
@@ -30,10 +29,9 @@ class Task{
         deadline = TaskListDateUtils.today(),
         completedDate = null;
 }
+
 @dao
 abstract class TaskDao {
-
-
   @Query("SELECT * FROM ${Task.tableName}")
   Future<List<Task>> list();
 

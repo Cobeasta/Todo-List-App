@@ -2,7 +2,7 @@ import 'package:todo_list/database/tables/task.dart';
 import 'package:todo_list/task/task_model.dart';
 
 class TaskRepository {
-   final TaskDao _taskDao;
+  final TaskDao _taskDao;
 
   TaskRepository(this._taskDao);
 
@@ -30,14 +30,15 @@ class TaskRepository {
   Future<List<int>> insertTaskList(List<TaskModel> tasks) {
     List<Task> toInsert = [];
     for (var task in tasks) {
-
-      toInsert.add(Task(null, task.title, task.description, task.deadline, task.completedDate));
+      toInsert.add(Task(null, task.title, task.description, task.deadline,
+          task.completedDate));
     }
     return _taskDao.insertAll(toInsert);
   }
 
   Future<void> insertTask(TaskModel task) {
-    return _taskDao.insertOne(Task(task.id, task.title, task.description, task.deadline, task.completedDate));
+    return _taskDao.insertOne(Task(task.id, task.title, task.description,
+        task.deadline, task.completedDate));
   }
 
   Future<void> deleteTask(int id) {
@@ -45,6 +46,7 @@ class TaskRepository {
   }
 
   Future<void> updateTask(TaskModel task) {
-    return _taskDao.updateOne(Task(task.id, task.title, task.description, task.deadline, task.completedDate));
+    return _taskDao.updateOne(Task(task.id, task.title, task.description,
+        task.deadline, task.completedDate));
   }
 }

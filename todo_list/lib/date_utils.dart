@@ -10,9 +10,11 @@ class TaskListDateUtils {
   static bool isToday(DateTime date) {
     return compareDates(date, today()) == 0;
   }
+
   static bool isBefore(DateTime date, DateTime end) {
     return compareDates(date, end) < 0;
   }
+
   static bool isAfterInclusive(DateTime date, DateTime start) {
     return compareDates(date, start) >= 0;
   }

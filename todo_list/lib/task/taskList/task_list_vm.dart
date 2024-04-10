@@ -1,13 +1,10 @@
 import 'dart:collection';
 
 import 'package:flutter/foundation.dart';
-import 'package:flutter/material.dart';
 import 'package:todo_list/settings.dart';
 import 'package:todo_list/date_utils.dart';
 import 'package:todo_list/main.dart';
 import 'package:todo_list/task/taskList/task_list_model.dart';
-
-import 'package:todo_list/task/task_repository.dart';
 import 'package:todo_list/task/task_model.dart';
 
 enum TaskListModes {
@@ -32,13 +29,13 @@ class TaskListVM extends ChangeNotifier {
   //  View state
   bool loading = false; // Data unavailable yet
   bool get settingsInitialized => _settingsInit; // settings initialized
-  bool get repositoryInitialized => _taskListModel.repositoryInit; // repository initialized
+  bool get repositoryInitialized =>
+      _taskListModel.repositoryInit; // repository initialized
   TaskListModes get mode => _settings.taskListMode; // view mode
   bool get showOverdue =>
       _settings.taskListShowOverdue; // flag for showing overdue
   bool get showCompleted =>
       _settings.taskListShowCompleted; // flag show completed
-
 
   /// Start initialization of taskListVM
   void init() {
@@ -59,7 +56,6 @@ class TaskListVM extends ChangeNotifier {
     _taskListModel.init();
   }
 
-
   // Overflow menu actions
   selectViewMode(TaskListModes mode) {
     _settings.taskListMode = mode;
@@ -75,35 +71,36 @@ class TaskListVM extends ChangeNotifier {
     _settings.toggleShowComplete(showCompleted);
   }
 
-
-
   // EditTaskModal actions
   void editTaskModalSubmit(TaskModel model) {
     // initialize map list for deadline if null
     _taskListModel.addTask(model);
     notifyListeners();
   }
+
   void removeTask(TaskModel model) {
     if (kDebugMode) {
       print("TaskListVM removeTask");
     }
     _taskListModel.removeTask(model);
   }
+
   void removeAllCompleted() {
     if (kDebugMode) {
       print("TaskListVM deleteCompletedTasks");
     }
     List<TaskModel> toRemove = [];
-    toRemove.addAll(_taskListModel.tasks.where((element) => element.isComplete));
+    toRemove
+        .addAll(_taskListModel.tasks.where((element) => element.isComplete));
 
     _taskListModel.removeAll(toRemove);
     notifyListeners();
   }
+
   void updateTask(TaskModel model) async {
     _taskListModel.updateTask(model);
     notifyListeners();
   }
-
 
   // ListView actions
   Future<void> onRefresh() async {
@@ -112,23 +109,15 @@ class TaskListVM extends ChangeNotifier {
 
 // Task list implementations
 
-
-
-
-
-
-
   Set<TaskModel> get overdue {
     if (kDebugMode) {
       print("TaskListVM getOverdue");
     }
 
-    Set<TaskModel> overdueTasks = _taskListModel.tasks.where((e) => e.overdue).toSet();
+    Set<TaskModel> overdueTasks =
+        _taskListModel.tasks.where((e) => e.overdue).toSet();
     return overdueTasks;
   }
-
-
-
 
   // Parse Task model state
 
@@ -148,8 +137,7 @@ class TaskListVM extends ChangeNotifier {
     if (kDebugMode) {
       print("TaskListVM getToday");
     }
-    return _taskListModel.tasks.where((e) => e.dueToday)
-        .toSet();
+    return _taskListModel.tasks.where((e) => e.dueToday).toSet();
   }
 
   Map<DateTime, List<TaskModel>> get tasksUpcoming {
@@ -163,7 +151,8 @@ class TaskListVM extends ChangeNotifier {
         return _taskListModel.upcomingTasksByDate(
             TaskListDateUtils.tomorrow(), TaskListDateUtils.daysFromToday(8));
       case TaskListModes.upcoming:
-        return _taskListModel.upcomingTasksByDate(TaskListDateUtils.tomorrow(), null);
+        return _taskListModel.upcomingTasksByDate(
+            TaskListDateUtils.tomorrow(), null);
     }
   }
 
@@ -172,19 +161,16 @@ class TaskListVM extends ChangeNotifier {
       print("TaskListModel overdue");
     }
 
-    Set<TaskModel> completedTasks = _taskListModel.tasks.where((e) => e.isComplete).toSet();
+    Set<TaskModel> completedTasks =
+        _taskListModel.tasks.where((e) => e.isComplete).toSet();
     return completedTasks;
   }
-
 
   void onModalClose() {
     notifyListeners();
   }
 
-
-  /**
-   * Used during initialization of model
-   */
+  /// Used during initialization of model
   void updateModelState() {
     notifyListeners();
   }
@@ -192,6 +178,4 @@ class TaskListVM extends ChangeNotifier {
   void dataUpdate() {
     notifyListeners();
   }
-
-
 }

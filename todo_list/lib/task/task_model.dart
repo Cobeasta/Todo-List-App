@@ -82,7 +82,7 @@ class TaskModel implements Comparable<TaskModel> {
 
   @override
   int compareTo(other) {
-      return deadline.millisecondsSinceEpoch -
-          other.deadline.millisecondsSinceEpoch;
+    return deadline.millisecondsSinceEpoch -
+        other.deadline.millisecondsSinceEpoch;
   }
 }

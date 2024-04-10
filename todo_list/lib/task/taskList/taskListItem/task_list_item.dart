@@ -10,9 +10,8 @@ class TaskListItemWidget extends StatefulWidget {
   final UniqueKey _key = UniqueKey();
   final bool showCheckbox;
 
-
-
-  TaskListItemWidget(this._model, this._taskListVM, {super.key, this.showCheckbox = true} );
+  TaskListItemWidget(this._model, this._taskListVM,
+      {super.key, this.showCheckbox = true});
 
   @override
   State<StatefulWidget> createState() => TaskItemView();

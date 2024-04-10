@@ -56,7 +56,7 @@ class EditTaskModalView extends State<EditTaskModal> {
                 onPressed: () {
                   _viewmodel.updateDeadline(TaskListDateUtils.tomorrow());
                 },
-                child:  Text(TaskListDateUtils.getWeekday(in2Days)),
+                child: Text(TaskListDateUtils.getWeekday(in2Days)),
               ),
             ),
           ],
@@ -72,7 +72,7 @@ class EditTaskModalView extends State<EditTaskModal> {
             ),
             controller: _viewmodel.titleController,
             style: Theme.of(context).textTheme.headlineSmall,
-                autofocus: (_viewmodel.title == ""),
+            autofocus: (_viewmodel.title == ""),
           )),
         ),
         buildFormItem(context,
@@ -139,10 +139,11 @@ class EditTaskModalView extends State<EditTaskModal> {
 
   void _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
-        context: context,
-        initialDate: TaskListDateUtils.today(),
-        firstDate: TaskListDateUtils.today(),
-        lastDate: DateTime(DateTime.timestamp().year + 5),);
+      context: context,
+      initialDate: TaskListDateUtils.today(),
+      firstDate: TaskListDateUtils.today(),
+      lastDate: DateTime(DateTime.timestamp().year + 5),
+    );
     if (picked == null) {
       _viewmodel.updateDeadline(TaskListDateUtils.today());
     } else {

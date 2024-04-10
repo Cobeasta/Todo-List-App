@@ -1,7 +1,6 @@
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todo_list/task/taskList/task_list_vm.dart';
 
-
 class Settings {
   SharedPreferences prefs;
 
@@ -45,19 +44,18 @@ class Settings {
   // Setters
 
   toggleShowOverdue(bool? value) {
-    if(value == null) {
+    if (value == null) {
       _taskListShowOverdue = !taskListShowOverdue;
-    }
-    else {
+    } else {
       _taskListShowOverdue = value;
     }
     prefs.setBool("TaskListShowOverdue", _taskListShowOverdue!);
   }
+
   toggleShowComplete(bool? value) {
-    if(value == null) {
+    if (value == null) {
       _taskListShowCompleted = !taskListShowCompleted;
-    }
-    else {
+    } else {
       _taskListShowCompleted = value;
     }
     prefs.setBool("TaskListShowOverdue", _taskListShowCompleted!);
@@ -67,5 +65,4 @@ class Settings {
     prefs.setInt("TaskListMode", mode.value);
     _taskListMode = mode.value;
   }
-
 }

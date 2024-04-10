@@ -13,7 +13,6 @@ class EditTaskVM extends ChangeNotifier {
 
   EditTaskVM(this._taskListVM, this._taskModel);
 
-
   final TextEditingController _titleController = TextEditingController();
 
   TextEditingController get titleController => _titleController;
@@ -31,7 +30,6 @@ class EditTaskVM extends ChangeNotifier {
     _descriptionController.text = _taskModel.description;
 
     getIt.getAsync<TaskRepository>().then((value) => start(value));
-
   }
 
   void start(TaskRepository repository) {

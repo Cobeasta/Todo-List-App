@@ -237,19 +237,20 @@ class TaskListView extends State<TaskList> {
 
               Text? subtitle;
               if (dayTasks.isNotEmpty) {
-                Text subtitle =Text( dayTasks.length == 1
-                    ? "1 task due"
-                    : "${dayTasks.length} tasks due",
-                style: Theme.of(context).textTheme.bodyMedium,);
+                subtitle = Text(
+                  dayTasks.length == 1
+                      ? "1 task due"
+                      : "${dayTasks.length} tasks due",
+                  style: Theme.of(context).textTheme.bodyMedium,
+                );
               }
 
               Header header = Header(
-                title: Text(
-                  title,
-                  style: Theme.of(context).textTheme.headlineSmall,
-                ),
-                subTitle: subtitle ?? const SizedBox.shrink()
-              );
+                  title: Text(
+                    title,
+                    style: Theme.of(context).textTheme.headlineSmall,
+                  ),
+                  subTitle: subtitle ?? const SizedBox.shrink());
 
               return ListView(
                 physics: const ClampingScrollPhysics(),
@@ -332,7 +333,6 @@ class Header extends StatelessWidget {
     this.trailing,
     this.tileColor, // Make height required for clarity
   });
-
 
   @override
   Widget build(BuildContext context) {

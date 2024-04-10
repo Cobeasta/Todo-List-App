@@ -29,5 +29,3 @@ class OptionalDateTimeConverter extends TypeConverter<DateTime?, int?> {
     return value.millisecondsSinceEpoch;
   }
 }
-
-
