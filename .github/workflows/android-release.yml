@@ -1,49 +1,16 @@
 name: Android Release
 
 on:
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
   workflow_dispatch:
 jobs:
   build:
+    uses Cobeasta/Todo-List-App/.github/workflows/android-build.yml
+  release:
     runs-on: ubuntu-latest
-    env:
-      APK_PATH: todo_list/build/app/outputs/flutter-apk/app-release.apk
-      AAB_PATH: todo_list/build/app/outputs/bundle/release/app-release.aab
-      WORKDIR: ./todo_list
+    needs: build
     steps:
-      - name: Checkout Code
-        uses: actions/checkout@v4
-      - name: Setup Java to compile Android
-        uses: actions/setup-java@v3
-        with:
-          distribution: 'zulu'
-          java-version: "12.x"
-      - uses: subosito/flutter-action@v2
-        with:
-          flutter-version: "3.19.2"
-          channel: 'stable'
-      - name: Get dependencies
-        run: flutter pub get
-        working-directory: ${{ env.WORKDIR }}
-      - name: Generate code
-        run: dart run build_runner build
-      - name: Lint project
-        run: flutter analyze
-        working-directory: ${{ env.WORKDIR }}
-      - name: Test
-        working-directory: ${{ env.WORKDIR }}
-        run: flutter test
-      - name: Start release build
-        working-directory: ${{ env.WORKDIR }}
-        run: flutter build appbundle --release
-      - name: Upload generated artifacts
-        uses: actions/upload-artifact@master
-        with:
-          name: release-apk
-          path: |
-            {{ env.APK_PATH }}
-            {{ env.AAB_PATH }}
-        
+      - uses: actions/download-artifact@v4
+      - name: Display structure of downloads
+        run: ls -R
+      
+       
