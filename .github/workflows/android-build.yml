@@ -39,8 +39,8 @@ jobs:
         run: dart pub get
       - name: Generate code
         run: dart run build_runner build
-      - name: Start release build
-        run: flutter build appbundle --release
+      - name: Start apk release build
+        run: flutter build apk --release
       - name: Upload build artifact
         uses: actions/upload-artifact@v4
         id: artifact-upload
