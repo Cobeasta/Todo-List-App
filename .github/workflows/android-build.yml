@@ -19,8 +19,8 @@ jobs:
         shell: bash
         working-directory: ./todo_list
     env:
-      APK_PATH: todo_list/build/app/outputs/flutter-apk/app-release.apk
-      AAB_PATH: todo_list/build/app/outputs/bundle/release/app-release.aab
+      APK_PATH: build/app/outputs/flutter-apk/app-release.apk
+      AAB_PATH: build/app/outputs/bundle/release/app-release.aab
     outputs:
       apk-artifact: ${{ steps.artifact-upload.artifact-id}}
     steps:
