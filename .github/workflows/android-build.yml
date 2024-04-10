@@ -50,6 +50,6 @@ jobs:
         id: artifact-upload
         with:
           name: release-apk
-          path: {{ APK_PATH }}
+          path: "{{ APK_PATH }}"
           retention-days: 5
         
