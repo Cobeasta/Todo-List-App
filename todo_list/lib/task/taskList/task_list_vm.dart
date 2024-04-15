@@ -69,6 +69,7 @@ class TaskListVM extends ChangeNotifier {
 
   toggleShowCompleted(bool showCompleted) {
     _settings.toggleShowComplete(showCompleted);
+    notifyListeners();
   }
 
   // EditTaskModal actions
@@ -149,10 +150,10 @@ class TaskListVM extends ChangeNotifier {
         return <DateTime, List<TaskModel>>{};
       case TaskListModes.week:
         return _taskListModel.upcomingTasksByDate(
-            TaskListDateUtils.tomorrow(), TaskListDateUtils.daysFromToday(8));
+            TaskListDateUtils.today(), TaskListDateUtils.daysFromToday(8));
       case TaskListModes.upcoming:
         return _taskListModel.upcomingTasksByDate(
-            TaskListDateUtils.tomorrow(), null);
+            TaskListDateUtils.today(), null);
     }
   }
 

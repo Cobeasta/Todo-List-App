@@ -146,8 +146,9 @@ class TaskListView extends State<TaskList> {
             physics: const AlwaysScrollableScrollPhysics(),
             children: [
               buildOverdue(context, vm),
-              buildToday(context, vm),
-              buildUpcoming(context, vm),
+              vm.mode == TaskListModes.today
+                  ? buildToday(context, vm)
+                  : buildUpcoming(context, vm),
               buildCompleted(context, vm),
             ]));
   }
@@ -196,16 +197,10 @@ class TaskListView extends State<TaskList> {
               ...tasks.map((e) => TaskListItemWidget(e, vm)),
             ],
           )
-        : vm.mode == TaskListModes.today
-            ? ListTile(
-                title: Text("Nothing due today",
-                    style: Theme.of(context).textTheme.headlineSmall),
-              )
-            : Header(
-        title: Text(
-          "$dateStr \u2022 Tod \u2022 $weekday",
-          style: Theme.of(context).textTheme.headlineSmall,
-        ));
+        : ListTile(
+            title: Text("Nothing due today",
+                style: Theme.of(context).textTheme.headlineSmall),
+          );
   }
 
   /// Build upcoming tasks widgets as a listview.
@@ -236,9 +231,17 @@ class TaskListView extends State<TaskList> {
               String weekday = TaskListDateUtils.getWeekday(date);
               int relativeDay = TaskListDateUtils.daysUntil(date);
 
-              String title = (relativeDay == 1)
-                  ? "$dateStr \u2022 Tom \u2022 $weekday"
-                  : "$dateStr \u2022  $weekday";
+              String title = "";
+              switch (relativeDay) {
+                case 0:
+                  title = "$dateStr \u2022 Tod \u2022 $weekday";
+                  break;
+                case 1:
+                  title = "$dateStr \u2022 Tom \u2022 $weekday";
+                  break;
+                default:
+                  title = "$dateStr \u2022  $weekday";
+              }
 
               Text? subtitle;
               if (dayTasks.isNotEmpty) {
