@@ -57,9 +57,9 @@ class TaskListModel {
 
     // get relevant tasks
     Iterable<TaskModel> filtered = _tasks.where((e) {
-      return TaskListDateUtils.compareDates(e.deadline, start) >= 0 &&
+      return !e.isComplete && !e.overdue && (TaskListDateUtils.compareDates(e.deadline, start) >= 0 &&
               end == null ||
-          (end != null && TaskListDateUtils.compareDates(e.deadline, end) < 0);
+          (end != null && TaskListDateUtils.compareDates(e.deadline, end) < 0));
     });
 
     // initialize days if given a specific interval

@@ -58,7 +58,7 @@ class Settings {
     } else {
       _taskListShowCompleted = value;
     }
-    prefs.setBool("TaskListShowOverdue", _taskListShowCompleted!);
+    prefs.setBool("TaskListShowCompleted", _taskListShowCompleted!);
   }
 
   set taskListMode(TaskListModes mode) {

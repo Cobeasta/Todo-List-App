@@ -157,7 +157,7 @@ class TaskListView extends State<TaskList> {
   Widget buildOverdue(BuildContext context, TaskListVM vm) {
     Set<TaskModel> overdue = SplayTreeSet<TaskModel>();
 
-    if (vm.showOverdue) {
+    if (!vm.showOverdue) {
       return const SizedBox.shrink();
     }
     overdue = vm.tasksOverdue;
@@ -180,7 +180,8 @@ class TaskListView extends State<TaskList> {
   Widget buildToday(BuildContext context, TaskListVM vm) {
     Set<TaskModel> tasks = vm.tasksDueToday;
     DateTime tod = TaskListDateUtils.today();
-
+    var dateStr = TaskListDateUtils.formatDate(tod);
+    var weekday = TaskListDateUtils.getWeekday(tod);
     return tasks.isNotEmpty
         ? ListView(
             physics: const ClampingScrollPhysics(),
@@ -200,7 +201,11 @@ class TaskListView extends State<TaskList> {
                 title: Text("Nothing due today",
                     style: Theme.of(context).textTheme.headlineSmall),
               )
-            : const SizedBox.shrink();
+            : Header(
+        title: Text(
+          "$dateStr \u2022 Tod \u2022 $weekday",
+          style: Theme.of(context).textTheme.headlineSmall,
+        ));
   }
 
   /// Build upcoming tasks widgets as a listview.
