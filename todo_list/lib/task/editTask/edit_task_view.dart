@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:path/path.dart';
 import 'package:todo_list/basic_widgets/task_list_checkbox.dart';
 import 'package:todo_list/date_utils.dart';
 import 'package:todo_list/task/task_model.dart';
@@ -61,22 +62,28 @@ class EditTaskModalView extends State<EditTaskModal> {
             ),
           ],
         ),
-        buildFormItem(
-          context,
-          leading: TaskListCheckBox(_viewmodel.isCompleted,
-              (val) => _viewmodel.onCheckToggle(context, val)),
-          child: Expanded(
+        buildFormItem(context,
+            leading: TaskListCheckBox(_viewmodel.isCompleted,
+                (val) => _viewmodel.onCheckToggle(context, val)),
+            child: Expanded(
               child: TextField(
-            decoration: const InputDecoration(
-              hintText: "Task Title",
-            ),
-            controller: StyleableTextFieldController(
-              styles: TextPartStyleDefinitions(definitionList: )
-            ),
-            style: Theme.of(context).textTheme.headlineSmall,
-            autofocus: (_viewmodel.title == ""),
-          )),
-        ),
+                decoration: const InputDecoration(
+                  hintText: "Task Title",
+                ),
+                autofocus: (_viewmodel.title == ""),
+                controller: StyleableTextFieldController(
+                  styles: TextPartStyleDefinitions(
+                      definitionList: <TextPartStyleDefinition>[
+                        TextPartStyleDefinition(
+                            pattern: _viewmodel.dateRegex,
+                            style: TextStyle(
+                                color: Theme.of(context).colorScheme.onPrimary,
+                                backgroundColor:
+                                    Theme.of(context).colorScheme.primary))
+                      ]),
+                ),
+              ),
+            )),
         buildFormItem(context,
             leading:
                 Transform.scale(scale: 1.3, child: const Icon(Icons.edit_note)),

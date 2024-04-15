@@ -98,6 +98,10 @@ class EditTaskVM extends ChangeNotifier {
     notifyListeners();
     Navigator.pop(context, _taskModel);
   }
+
+  String dateRegex =
+      "(($dueTodayPattern)|($dueTomorrowPattern))(?!.*(($dueTodayPattern)|($dueTomorrowPattern)))";
 }
 
-
+const String dueTodayPattern = "tod(ay)?";
+const String dueTomorrowPattern = "tom(orrow)?";
