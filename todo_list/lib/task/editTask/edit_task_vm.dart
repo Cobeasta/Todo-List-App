@@ -39,16 +39,17 @@ class EditTaskVM extends ChangeNotifier {
   void start(TaskRepository repository) {
     _repository = repository;
 
-    _titleController.addListener(() {
-      _taskModel.updateTitle(_titleController.text);
-    });
+    _titleController.addListener(titleControllerUpdate);
     _descriptionController.addListener(() {
       _taskModel.updateDescription(_descriptionController.text);
     });
   }
 
-  void titleControllerUpdate(String text) {
+  void titleControllerUpdate() {
+    String text = _titleController.text;
     bool notifyFlag = false;
+
+    var deadline = RegExp(dateRegex);
     var textSplit = text.split("\\s");
     String newTitle = "";
     for (int i = 0; i < textSplit.length; i++) {
