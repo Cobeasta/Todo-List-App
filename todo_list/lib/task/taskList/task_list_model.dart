@@ -31,7 +31,7 @@ class TaskListModel {
   }
 
   // private fields
-  final SplayTreeSet<TaskModel> _tasks = SplayTreeSet<TaskModel>();
+  final List<TaskModel> _tasks = [];
 
   // Getting model state
   bool repositoryInit = false;
@@ -44,6 +44,7 @@ class TaskListModel {
     List<TaskModel> tasks = await _repository.listTasks();
 
     _tasks.addAll(tasks);
+    _vm.updateModelState();
   }
 
   SplayTreeMap<DateTime, List<TaskModel>> upcomingTasksByDate(
@@ -57,7 +58,9 @@ class TaskListModel {
 
     // get relevant tasks
     Iterable<TaskModel> filtered = _tasks.where((e) {
-      return !e.isComplete && !e.overdue && TaskListDateUtils.compareDates(e.deadline, start) >= 0 &&
+      return !e.isComplete &&
+          !e.overdue &&
+          TaskListDateUtils.compareDates(e.deadline, start) >= 0 &&
           (end == null || TaskListDateUtils.compareDates(e.deadline, end) < 0);
     });
 
@@ -83,26 +86,33 @@ class TaskListModel {
 
   TaskListModes get mode => _settings.taskListMode;
 
-  SplayTreeSet<TaskModel> get tasks => _tasks;
+  List<TaskModel> get tasks => _tasks;
 
   // Setting model state
 
-  void addTask(TaskModel model) {
+  Future<void> addTask(TaskModel model) async {
+    await _repository.insertTask(model);
     _tasks.add(model);
+
   }
 
   Future<void> removeTask(TaskModel model) async {
     _tasks.removeWhere((e) => e == model);
     if (model.id != null) {
-      await _repository.deleteTask(model.id);
+      await _repository.deleteTask(model.id!);
     }
   }
 
   Future<void> removeAll(Iterable<TaskModel> toRemove) async {
+    List<int> ids = [];
     for (var element in toRemove) {
-      _repository.deleteTask(element.id);
+      if(element.id != null) {
+        _repository.deleteTask(element.id!);
+        ids.add(element.id!);
+      }
+
     }
-    _tasks.removeAll(toRemove);
+    _tasks.removeWhere((element) => ids.contains(element.id));
   }
 
   Future<void> updateTask(TaskModel model) async {

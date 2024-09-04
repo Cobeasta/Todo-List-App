@@ -75,4 +75,24 @@ class TaskListDateUtils {
     int key2I = int.parse(comparisonDateFormat.format(key2));
     return key1I - key2I;
   }
+  static DateTime thisSaturday() {
+    DateTime tod = today();
+    switch(tod.weekday) {
+      case 1:
+        return DateTime(tod.year, tod.month, tod.day + 5);
+      case 2:
+        return DateTime(tod.year, tod.month, tod.day + 4);
+      case 3:
+        return DateTime(tod.year, tod.month, tod.day + 3);
+      case 4:
+        return DateTime(tod.year, tod.month, tod.day + 2);
+      case 5:
+        return DateTime(tod.year, tod.month, tod.day + 1);
+      case 6:
+        return tod;
+      case 7:
+        return DateTime(tod.year, tod.month, tod.day + 6);
+    }
+    return tod;
+  }
 }

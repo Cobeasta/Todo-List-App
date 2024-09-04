@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:todo_list/date_utils.dart';
 import 'package:todo_list/main.dart';
@@ -6,7 +7,6 @@ import 'package:todo_list/task/task_repository.dart';
 import 'package:todo_list/task/taskList/task_list_vm.dart';
 
 class EditTaskVM extends ChangeNotifier {
-  late TaskRepository _repository;
   final TaskModel _taskModel;
   final TaskListVM _taskListVM;
 
@@ -14,10 +14,10 @@ class EditTaskVM extends ChangeNotifier {
 
   EditTaskVM(this._taskListVM, this._taskModel);
 
-  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _titleController = TitleTextFieldController();
+  final TextEditingController _descriptionController = TextEditingController();
 
   TextEditingController get titleController => _titleController;
-  final TextEditingController _descriptionController = TextEditingController();
 
   TextEditingController get descriptionController => _descriptionController;
 
@@ -30,15 +30,8 @@ class EditTaskVM extends ChangeNotifier {
   DateTime get deadline => _taskModel.deadline;
 
   void init() {
-    _titleController.text = _taskModel.title;
     _descriptionController.text = _taskModel.description;
-
-    getIt.getAsync<TaskRepository>().then((value) => start(value));
-  }
-
-  void start(TaskRepository repository) {
-    _repository = repository;
-
+    _titleController.text = _taskModel.title;
     _titleController.addListener(titleControllerUpdate);
     _descriptionController.addListener(() {
       _taskModel.updateDescription(_descriptionController.text);
@@ -46,11 +39,9 @@ class EditTaskVM extends ChangeNotifier {
   }
 
   void titleControllerUpdate() {
-    String text = _titleController.text;
     bool notifyFlag = false;
 
-    var deadline = RegExp(dateRegex);
-    var textSplit = text.split("\\s");
+    var textSplit = _titleController.text.split(r"\s");
     String newTitle = "";
     for (int i = 0; i < textSplit.length; i++) {
       if (textSplit[i].toLowerCase() == "today" ||
@@ -90,19 +81,85 @@ class EditTaskVM extends ChangeNotifier {
   }
 
   void submit(BuildContext context) {
+    if (kDebugMode) {
+      print("EditTaskVM submit");
+    }
     if (_taskModel.id == null) {
-      _repository.insertTask(_taskModel);
       _taskListVM.editTaskModalSubmit(_taskModel);
     } else {
-      _repository.updateTask(_taskModel);
+      _taskListVM.updateTask(_taskModel);
     }
     notifyListeners();
     Navigator.pop(context, _taskModel);
   }
-
-  String dateRegex =
-      "(($dueTodayPattern)|($dueTomorrowPattern))(?!.*(($dueTodayPattern)|($dueTomorrowPattern)))";
 }
 
-const String dueTodayPattern = "tod(ay)?";
-const String dueTomorrowPattern = "tom(orrow)?";
+class TitleTextFieldController extends TextEditingController {
+  TitleTextFieldController();
+
+  final String dueTodayPattern = "tod(ay)?[\\s\$]";
+  final String dueTomorrowPattern = "tom(orrow)?[\\s\$]";
+
+  String get combinedDateRegexStr =>
+      "(($dueTodayPattern)|($dueTomorrowPattern))(?!.*(($dueTodayPattern)|($dueTomorrowPattern)))";
+
+  @override
+  TextSpan buildTextSpan({
+    required BuildContext context,
+    TextStyle? style,
+    required bool withComposing,
+  }) {
+    final List<InlineSpan> textSpanChildren = <InlineSpan>[];
+
+    Pattern combinedRegex = RegExp(
+      combinedDateRegexStr,
+      caseSensitive: false,
+    );
+
+    text.splitMapJoin(
+      combinedRegex,
+      onMatch: (Match match) {
+        final String? textPart = match.group(0);
+
+        if (textPart == null) return '';
+
+
+        // if matches date regex
+        if (combinedRegex.matchAsPrefix(textPart) != null) {
+          _addTextSpan(
+              textSpanChildren,
+              textPart,
+              TextStyle(
+                  color: Theme.of(context).colorScheme.onPrimary,
+                  background: Paint()
+                    ..strokeWidth = 2.0
+                    ..color = Theme.of(context).colorScheme.primary
+                    ..strokeCap = StrokeCap.round
+                    ..style = PaintingStyle.fill
+                    ..strokeJoin = StrokeJoin.round));
+          return '';
+        }
+        return '';
+      },
+      onNonMatch: (String segment) {
+        _addTextSpan(textSpanChildren, segment, style);
+        return '';
+      },
+    );
+
+    return TextSpan(style: style, children: textSpanChildren);
+  }
+
+  void _addTextSpan(
+    List<InlineSpan> textSpanChildren,
+    String? textToBeStyled,
+    TextStyle? style,
+  ) {
+    textSpanChildren.add(
+      TextSpan(
+        text: textToBeStyled,
+        style: style,
+      ),
+    );
+  }
+}

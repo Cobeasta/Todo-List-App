@@ -37,7 +37,7 @@ class TaskModel implements Comparable<TaskModel> {
 
   DateTime get deadline => _deadline;
 
-  get id => _id;
+  int? get id => _id;
 
   void updateTitle(String text) {
     _title = text;
