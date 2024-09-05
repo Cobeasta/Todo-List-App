@@ -306,9 +306,6 @@ class TaskListView extends State<TaskList> {
         TaskModel task = TaskModel.createEmpty();
         openEditTaskModal(task, vm, context).then(
           (value) {
-            if (value != null) {
-              vm.editTaskModalSubmit(value);
-            }
             vm.onModalClose();
           },
         );

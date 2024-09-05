@@ -29,6 +29,8 @@ class TaskListVM extends ChangeNotifier {
   //  View state
   bool loading = false; // Data unavailable yet
   bool get settingsInitialized => _settingsInit; // settings initialized
+
+
   bool get repositoryInitialized =>
       _taskListModel.repositoryInit; // repository initialized
   TaskListModes get mode => _settings.taskListMode; // view mode
