@@ -7,18 +7,21 @@ class TaskModel implements Comparable<TaskModel> {
         _title = task.title,
         _description = task.description,
         _deadline = task.deadline,
-        _completedDate = task.completedDate;
+        _completedDate = task.completedDate,
+        _repeatPattern = task.repeatPattern;
 
   TaskModel.createEmpty()
       : _id = null,
         _title = "",
         _description = "",
         _deadline = TaskListDateUtils.today(),
-        _completedDate = null;
+        _completedDate = null,
+        _repeatPattern = "";
 
   final int? _id;
   String _title;
   String _description;
+  String _repeatPattern;
   DateTime? _completedDate;
   DateTime _deadline;
 
@@ -50,6 +53,9 @@ class TaskModel implements Comparable<TaskModel> {
   void updateDeadline(DateTime dateTime) {
     _deadline = dateTime;
   }
+  void updateRepeatDeadline(String days) {
+    _repeatPattern = days;
+  }
 
   /// Change value of isComplete.
   void setComplete(bool? value) {
@@ -69,6 +75,7 @@ class TaskModel implements Comparable<TaskModel> {
     // _isCompleted did change
   }
 
+
   @override
   bool operator ==(Object other) {
     if (other is TaskModel) {
@@ -79,6 +86,8 @@ class TaskModel implements Comparable<TaskModel> {
 
   @override
   int get hashCode => _id.hashCode;
+
+  String get repeatPattern => _repeatPattern;
 
   @override
   int compareTo(other) {

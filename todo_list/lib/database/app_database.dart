@@ -8,9 +8,15 @@ import 'package:todo_list/database/typeConverters/date_time_converter.dart';
 part 'app_database.g.dart'; // the generated code will be there
 
 @TypeConverters([DateTimeConverter, OptionalDateTimeConverter])
-@Database(version: 1, entities: [Task])
+@Database(version: 2, entities: [Task])
 abstract class AppDatabase extends FloorDatabase {
   static const databaseName = "tasklist_app.db";
 
   TaskDao get taskDao;
 }
+final migration1to2 = Migration(1, 2, (database) async {
+  await database.execute('''
+      ALTER TABLE ${Task.tableName}
+        ADD COLUMN repeatPattern TEXT NOT NULL DEFAULT ''
+    ''');
+});

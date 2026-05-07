@@ -26,7 +26,7 @@ void registerSingletons() {
 
   // database
   getIt.registerSingletonAsync(() async =>
-      $FloorAppDatabase.databaseBuilder(AppDatabase.databaseName).build());
+      $FloorAppDatabase.databaseBuilder(AppDatabase.databaseName).addMigrations([migration1to2]).build());
 
   getIt.registerSingletonWithDependencies<TaskDao>(() {
     return getIt.get<AppDatabase>().taskDao;

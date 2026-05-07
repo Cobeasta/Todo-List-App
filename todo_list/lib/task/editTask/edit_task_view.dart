@@ -87,6 +87,7 @@ class EditTaskModalView extends State<EditTaskModal> {
       mainAxisAlignment: MainAxisAlignment.end,
       children: [
         ElevatedButton(
+            // select date popup button
             onPressed: () {
               _buildSelectDatePopup(context, vm);
             },
@@ -97,11 +98,19 @@ class EditTaskModalView extends State<EditTaskModal> {
               ],
             )),
         IconButton(
+            // delete button
             onPressed: () {
               vm.delete(context);
             },
             icon: const Icon(Icons.delete)),
         IconButton(
+          onPressed: () {
+            _buildSelectRepeatPatternPopup(context, vm);
+          },
+          icon: const Icon(Icons.repeat),
+        ),
+        IconButton(
+            // submit button
             onPressed: () {
               vm.submit(context);
             },
@@ -153,6 +162,86 @@ class EditTaskModalView extends State<EditTaskModal> {
     }
   }
 
+  void _buildSelectRepeatPatternPopup(
+      BuildContext context, EditTaskVM vm) async {
+      Set<int> selectedDays = vm.repeatDays.split(',').where((e) => e.isNotEmpty).map(int.parse).toSet();
+      final result = await showDialog<Set<int>>(
+        context: context,
+        builder: (context) {
+          return StatefulBuilder(
+            builder: (context, setState) {
+              return AlertDialog(
+                title: Text("Custom Repeat"),
+                content: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text("Repeat on:"),
+                    SizedBox(height: 10),
+                    _buildWeekdaySelector(
+                      selectedDays,
+                          (newSet) {
+                        setState(() {
+                          selectedDays = newSet;
+                        });
+                      },
+                    ),
+                  ],
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text("Cancel"),
+                  ),
+                  TextButton(
+                    onPressed: () => Navigator.pop(context, selectedDays),
+                    child: Text("Save"),
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      );
+
+      if (result != null) {
+        vm.updateRepeatDays((result.toList()..sort()).join(','));
+      }
+  }
+
+  Widget _buildWeekdaySelector(
+      Set<int> selectedDays, Function(Set<int>) onChanged) {
+    const days = [
+      {"label": "M", "value": 1},
+      {"label": "T", "value": 2},
+      {"label": "W", "value": 3},
+      {"label": "T", "value": 4},
+      {"label": "F", "value": 5},
+      {"label": "S", "value": 6},
+      {"label": "S", "value": 7},
+    ];
+
+    return Wrap(
+      spacing: 6,
+      children: days.map((day) {
+        final isSelected = selectedDays.contains(day["value"]);
+
+        return FilterChip(
+          label: Text(day["label"] as String),
+          selected: isSelected,
+          onSelected: (bool selected) {
+            final newSet = Set<int>.from(selectedDays);
+            if (selected) {
+              newSet.add(day["value"] as int);
+            } else {
+              newSet.remove(day["value"]);
+            }
+            onChanged(newSet);
+          },
+        );
+      }).toList(),
+    );
+  }
+
   Widget _buildFormItem(BuildContext context,
       {Widget? leading, required Widget child}) {
     return Card(
@@ -179,6 +268,7 @@ Future<dynamic> openEditTaskModal(
       context: context,
       isScrollControlled: true,
       builder: (BuildContext context) {
+        print("Task: ${task.title}  repeat days: ${task.repeatPattern}");
         return EditTaskModal(task, taskListVM);
       });
 }

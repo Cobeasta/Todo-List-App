@@ -170,7 +170,7 @@ class TaskListVM extends ChangeNotifier {
   }
 
   void onModalClose() {
-    notifyListeners();
+        notifyListeners();
   }
 
   /// Used during initialization of model

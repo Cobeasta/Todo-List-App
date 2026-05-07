@@ -31,14 +31,14 @@ class TaskRepository {
     List<Task> toInsert = [];
     for (var task in tasks) {
       toInsert.add(Task(null, task.title, task.description, task.deadline,
-          task.completedDate));
+          task.completedDate, task.repeatPattern));
     }
     return _taskDao.insertAll(toInsert);
   }
 
   Future<void> insertTask(TaskModel task) {
     return _taskDao.insertOne(Task(task.id, task.title, task.description,
-        task.deadline, task.completedDate));
+        task.deadline, task.completedDate, task.repeatPattern));
   }
 
   Future<void> deleteTask(int id) {
@@ -47,6 +47,6 @@ class TaskRepository {
 
   Future<void> updateTask(TaskModel task) {
     return _taskDao.updateOne(Task(task.id, task.title, task.description,
-        task.deadline, task.completedDate));
+        task.deadline, task.completedDate, task.repeatPattern));
   }
 }

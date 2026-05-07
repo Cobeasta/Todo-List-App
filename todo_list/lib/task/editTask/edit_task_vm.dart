@@ -29,6 +29,8 @@ class EditTaskVM extends ChangeNotifier {
 
   DateTime get deadline => _taskModel.deadline;
 
+  String get repeatDays => _taskModel.repeatPattern;
+
   void init() {
     _descriptionController.text = _taskModel.description;
     _titleController.text = _taskModel.title;
@@ -74,6 +76,10 @@ class EditTaskVM extends ChangeNotifier {
     _taskModel.updateDeadline(date);
     notifyListeners();
   }
+  updateRepeatDays(String repeatDays) {
+    _taskModel.updateRepeatDeadline(repeatDays);
+    notifyListeners();
+  }
 
   void delete(BuildContext context) {
     _taskListVM.removeTask(_taskModel);
@@ -89,6 +95,7 @@ class EditTaskVM extends ChangeNotifier {
     } else {
       _taskListVM.updateTask(_taskModel);
     }
+    print("TaskMode: ${_taskModel.title} repeat schedule: ${repeatDays}");
     notifyListeners();
     Navigator.pop(context, _taskModel);
   }
